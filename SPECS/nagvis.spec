@@ -1,26 +1,26 @@
 Name: nagvis
 Version: 1.8.5
-Release: 0.eon
+Release: 0.rgm
 Summary: Nagios advanced map editor
 
 Group: Applications/System
 License: GPL
 URL: http://www.nagvis.org/
 Source0: %{name}-%{version}.tar.gz
-Source1: %{name}-eon.tar.gz
+Source1: %{name}-rgm.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 
 Requires: php, php-gd, php-mysql, php-mbstring, nagios, mk-livestatus, graphviz
 
 # define path
-%define eondir		/srv/eyesofnetwork
+%define rgmdir		/srv/rgm
 %define eonconfdir	/srv/eyesofnetworkconf/%{name}
-%define datadir		%{eondir}/%{name}-%{version}
-%define linkdir		%{eondir}/%{name}
+%define datadir		%{rgmdir}/%{name}-%{version}
+%define linkdir		%{rgmdir}/%{name}
 
 # define user / group
 %define NAGIOSUSR	nagios
-%define APPLIANCEGRP	eyesofnetwork
+%define APPLIANCEGRP	rgm
 
 %description
 NagVis is a visualization addon for the well known network managment system Nagios.
@@ -29,7 +29,7 @@ system or a network infrastructure.
 
 %prep
 %setup -T -b 0 -n %{name}-%{version}
-%setup -T -b 1 -n %{name}-eon
+%setup -T -b 1 -n %{name}-rgm
 
 %install
 cd ..
@@ -46,13 +46,13 @@ mv %{buildroot}%{datadir}/docs/ %{buildroot}%{datadir}/share/
 
 # eon specifics
 install -d -m0755 %{buildroot}%{eonconfdir}
-cp -afpvr %{name}-eon/* %{buildroot}%{eonconfdir}
-cp -afpvr %{name}-eon/nagvis.ini.php %{buildroot}%{datadir}/etc/
+cp -afpvr %{name}-rgm/* %{buildroot}%{eonconfdir}
+cp -afpvr %{name}-rgm/nagvis.ini.php %{buildroot}%{datadir}/etc/
 rm -rf %{buildroot}%{datadir}/etc/auth.db
-cp -afpvr %{name}-eon/auth.db %{buildroot}%{datadir}/etc/
+cp -afpvr %{name}-rgm/auth.db %{buildroot}%{datadir}/etc/
 rm -rf %{buildroot}%{datadir}/etc/maps/*
 rm -rf %{buildroot}%{datadir}/share/userfiles/images/maps/*
-install -D -m 0644 %{name}-eon/%{name}.conf %{buildroot}/%{_sysconfdir}/httpd/conf.d/%{name}.conf
+install -D -m 0644 %{name}-rgm/%{name}.conf %{buildroot}/%{_sysconfdir}/httpd/conf.d/%{name}.conf
 
 %clean
 rm -rf %{buildroot}
@@ -70,6 +70,8 @@ chmod -R g+w %{datadir}*
 %{datadir}
 
 %changelog
+* Fri Feb 22 2019 Michael Aubertin <maubertin@fr.scc.com> - 1.8.5-0.rgm
+- 
 * Mon Aug 17 2015 Jean-Philippe Levy <jeanphilippe.levy@gmail.com> - 1.8.5-0.eon
 - upgrade to version 1.8.5
 
