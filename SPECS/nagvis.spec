@@ -71,7 +71,8 @@ chmod -R g+w %{datadir}*
 
 %changelog
 * Fri Feb 22 2019 Michael Aubertin <maubertin@fr.scc.com> - 1.8.5-0.rgm
-- 
+- Initial fork 
+
 * Mon Aug 17 2015 Jean-Philippe Levy <jeanphilippe.levy@gmail.com> - 1.8.5-0.eon
 - upgrade to version 1.8.5
 
