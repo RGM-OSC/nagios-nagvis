@@ -40,8 +40,8 @@ cp -afpvr  %{name}-%{version}/docs/en_US %{buildroot}%{datadir}/docs/fr_FR
 mv %{buildroot}%{datadir}/docs/ %{buildroot}%{datadir}/share/
 
 # RGM specifics
-install -d -m0755 %{buildroot}%{rgmdocdir}/%{name}
-cp -afpvr %{name}-rgm/* %{buildroot}%{rgmdocdir}/%{name}
+install -d -m0755 %{buildroot}%{rgm_docdir}/%{name}
+cp -afpvr %{name}-rgm/* %{buildroot}%{rgm_docdir}/%{name}
 cp -afpvr %{name}-rgm/nagvis.ini.php %{buildroot}%{datadir}/etc/
 rm -rf %{buildroot}%{datadir}/etc/auth.db
 cp -afpvr %{name}-rgm/auth.db %{buildroot}%{datadir}/etc/
@@ -64,7 +64,7 @@ chmod -R g+w %{datadir}*
 %files
 %defattr(-, root, root, 0755)
 %{_sysconfdir}/httpd/conf.d/nagvis.conf
-%{rgmdocdir}/%{name}
+%{rgm_docdir}/%{name}
 %defattr(-, %{rgm_user_nagios}, %{rgm_group}, 0775)
 %{datadir}
 
