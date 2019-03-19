@@ -1,6 +1,6 @@
 Name: nagvis
 Version: 1.8.5
-Release: 0.rgm
+Release: 1.rgm
 Summary: Nagios advanced map editor
 
 Group: Applications/System
@@ -13,14 +13,9 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 Requires: php, php-gd, php-mysql, php-mbstring, nagios, mk-livestatus, graphviz
 
 # define path
-%define rgmdir		/srv/rgm
-%define eonconfdir	/srv/eyesofnetworkconf/%{name}
-%define datadir		%{rgmdir}/%{name}-%{version}
-%define linkdir		%{rgmdir}/%{name}
+%define datadir		%{rgm_path}/%{name}-%{version}
+%define linkdir		%{rgm_path}/%{name}
 
-# define user / group
-%define NAGIOSUSR	nagios
-%define APPLIANCEGRP	rgm
 
 %description
 NagVis is a visualization addon for the well known network managment system Nagios.
@@ -44,9 +39,9 @@ cp -afpvr %{name}-%{version}/* %{buildroot}%{datadir}
 cp -afpvr  %{name}-%{version}/docs/en_US %{buildroot}%{datadir}/docs/fr_FR
 mv %{buildroot}%{datadir}/docs/ %{buildroot}%{datadir}/share/
 
-# eon specifics
-install -d -m0755 %{buildroot}%{eonconfdir}
-cp -afpvr %{name}-rgm/* %{buildroot}%{eonconfdir}
+# RGM specifics
+install -d -m0755 %{buildroot}%{rgmdocdir}/%{name}
+cp -afpvr %{name}-rgm/* %{buildroot}%{rgmdocdir}/%{name}
 cp -afpvr %{name}-rgm/nagvis.ini.php %{buildroot}%{datadir}/etc/
 rm -rf %{buildroot}%{datadir}/etc/auth.db
 cp -afpvr %{name}-rgm/auth.db %{buildroot}%{datadir}/etc/
@@ -57,19 +52,28 @@ install -D -m 0644 %{name}-rgm/%{name}.conf %{buildroot}/%{_sysconfdir}/httpd/co
 %clean
 rm -rf %{buildroot}
 
+%pre
+# create RGM system group if it doesn't already exists
+/usr/sbin/groupadd -r %{rgm_group} >/dev/null 2>&1 || :
+
 %post
 ln -nsf %{datadir} %{linkdir}
-chown -h %{NAGIOSUSR}:%{APPLIANCEGRP} %{linkdir}
+chown -h %{rgm_user_nagios}:%{rgm_group} %{linkdir}
 chmod -R g+w %{datadir}*
 
 %files
 %defattr(-, root, root, 0755)
 %{_sysconfdir}/httpd/conf.d/nagvis.conf
-%{eonconfdir}
-%defattr(-, %{NAGIOSUSR}, %{APPLIANCEGRP}, 0775)
+%{rgmdocdir}/%{name}
+%defattr(-, %{rgm_user_nagios}, %{rgm_group}, 0775)
 %{datadir}
 
 %changelog
+* Tue Mar 19 2019 Eric Belhomme <ebelhomme@fr.scc.com> - 1.8.5-1.rgm
+- use of rpm-macros-rgm
+- fix apache config file
+- fix ownerships
+
 * Fri Feb 22 2019 Michael Aubertin <maubertin@fr.scc.com> - 1.8.5-0.rgm
 - Initial fork
 
