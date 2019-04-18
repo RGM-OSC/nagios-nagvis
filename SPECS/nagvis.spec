@@ -1,6 +1,6 @@
 Name: nagvis
 Version: 1.8.5
-Release: 1.rgm
+Release: 2.rgm
 Summary: Nagios advanced map editor
 
 Group: Applications/System
@@ -10,7 +10,8 @@ Source0: %{name}-%{version}.tar.gz
 Source1: %{name}-rgm.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 
-Requires: php, php-gd, php-mysql, php-mbstring, nagios, mk-livestatus, graphviz
+Requires: php, php-gd, php-mysql, php-mbstring, nagios, mk-livestatus, graphviz, rgm-base
+BuildRequires: rpm-macros-rgm
 
 # define path
 %define datadir		%{rgm_path}/%{name}-%{version}
@@ -61,6 +62,9 @@ ln -nsf %{datadir} %{linkdir}
 chown -h %{rgm_user_nagios}:%{rgm_group} %{linkdir}
 chmod -R g+w %{datadir}*
 
+# execute SQL postinstall script
+/usr/share/rgm/manage_sql.sh -d %{rgm_db_nagvis} -u %{rgm_sql_internal_user} -p %{rgm_sql_internal_pwd}
+
 %files
 %defattr(-, root, root, 0755)
 %{_sysconfdir}/httpd/conf.d/nagvis.conf
@@ -69,6 +73,11 @@ chmod -R g+w %{datadir}*
 %{datadir}
 
 %changelog
+* Thu Apr 18 2019 Eric Belhomme <ebelhomme@fr.scc.com> - 1.8.5-2.rgm
+- replaced default sqlite auth backend with mysql auth backend
+- added auth_mysql section on config file
+- create empty DB on post section
+
 * Tue Mar 19 2019 Eric Belhomme <ebelhomme@fr.scc.com> - 1.8.5-1.rgm
 - use of rpm-macros-rgm
 - fix apache config file

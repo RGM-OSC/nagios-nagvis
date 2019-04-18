@@ -25,7 +25,8 @@ audit_log="0"
 ; supporting other authorisation mechanisms. For details take a look at the
 ; documentation.
 ;authmodule="CoreAuthModSQLite"
-;
+authmodule="CoreAuthModMySQL"
+
 ; Defines the authorisation module to use. By default NagVis uses the built-in
 ; SQLite authorisation module. On delivery there is no other authorisation
 ; module available. It is possible to add own authorisation modules for 
@@ -158,6 +159,15 @@ logonenvcreaterole="Guests"
 ; min_business_impact-filter on automaps which can be used to render automaps
 ; based on the shinken attribute "business_impact".
 ;shinken_features=0
+
+; MySQL credentials
+[auth_mysql]
+dbhost=localhost
+dbport=3306
+dbname=nagvis
+dbuser=rgminternal
+dbpass=0rd0-c0m1735-b47h0n143
+
 
 ; Path definitions
 [paths]
