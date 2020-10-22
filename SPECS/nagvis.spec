@@ -1,13 +1,13 @@
 Name: nagvis
 Version: 1.8.5
-Release: 2.rgm
+Release: 3.rgm
 Summary: Nagios advanced map editor
 
 Group: Applications/System
 License: GPL
 URL: http://www.nagvis.org/
 Source0: %{name}-%{version}.tar.gz
-Source1: %{name}-rgm.tar.gz
+
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 
 Requires: php, php-gd, php-mysql, php-mbstring, nagios, mk-livestatus, graphviz, rgm-base
@@ -25,7 +25,6 @@ system or a network infrastructure.
 
 %prep
 %setup -T -b 0 -n %{name}-%{version}
-%setup -T -b 1 -n %{name}-rgm
 
 %install
 cd ..
@@ -42,13 +41,16 @@ mv %{buildroot}%{datadir}/docs/ %{buildroot}%{datadir}/share/
 
 # RGM specifics
 install -d -m0755 %{buildroot}%{rgm_docdir}/%{name}
-cp -afpvr %{name}-rgm/* %{buildroot}%{rgm_docdir}/%{name}
-cp -afpvr %{name}-rgm/nagvis.ini.php %{buildroot}%{datadir}/etc/
+
 rm -rf %{buildroot}%{datadir}/etc/auth.db
-cp -afpvr %{name}-rgm/auth.db %{buildroot}%{datadir}/etc/
 rm -rf %{buildroot}%{datadir}/etc/maps/*
 rm -rf %{buildroot}%{datadir}/share/userfiles/images/maps/*
-install -D -m 0644 %{name}-rgm/%{name}.conf %{buildroot}/%{_sysconfdir}/httpd/conf.d/%{name}.conf
+
+install -D -m 0644 %{_sourcedir}/%{name}-rgm/nagvis.ini.php  %{buildroot}%{rgm_docdir}/%{name}/nagvis.ini.php
+install -D -m 0644 %{_sourcedir}/%{name}-rgm/%{name}.conf  %{buildroot}%{rgm_docdir}/%{name}/httpd.conf
+install -D -m 0644 %{_sourcedir}/%{name}-rgm/nagvis.ini.php %{buildroot}%{datadir}/etc/nagvis.ini.php
+install -D -m 0644 %{_sourcedir}/%{name}-rgm/%{name}.conf %{buildroot}/%{_sysconfdir}/httpd/conf.d/15_%{name}.conf
+
 
 %clean
 rm -rf %{buildroot}
@@ -66,13 +68,20 @@ chmod -R g+w %{datadir}*
 /usr/share/rgm/manage_sql.sh -d %{rgm_db_nagvis} -u %{rgm_sql_internal_user} -p %{rgm_sql_internal_pwd}
 
 %files
+%defattr(0640, root, root, 0755)
+%config(noreplace) %{_sysconfdir}/httpd/conf.d/15_%{name}.conf
+%defattr(0640, %{rgm_user_nagios}, %{rgm_group}, 0775)
+%config(noreplace) %{datadir}/etc
 %defattr(-, root, root, 0755)
-%{_sysconfdir}/httpd/conf.d/nagvis.conf
 %{rgm_docdir}/%{name}
 %defattr(-, %{rgm_user_nagios}, %{rgm_group}, 0775)
 %{datadir}
 
 %changelog
+
+* Thu Oct 22 2020 Eric Belhomme <ebelhomme@fr.scc.com> - 1.8.5-3.rgm
+- fix authorization module to MySQL backend
+
 * Thu Apr 18 2019 Eric Belhomme <ebelhomme@fr.scc.com> - 1.8.5-2.rgm
 - replaced default sqlite auth backend with mysql auth backend
 - added auth_mysql section on config file
