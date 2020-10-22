@@ -33,6 +33,7 @@ authmodule="CoreAuthModMySQL"
 ; supporting other authorisation mechanisms. For details take a look at the
 ; documentation.
 ;authorisationmodule="CoreAuthorisationModSQLite"
+authorisationmodule="CoreAuthorisationModMySQL"
 ;
 ; Sets the size of the controls in unlocked (edit) mode of the frontend. This 
 ; defaults to a value of 10 which makes each control be sized to 10px * 10px.
