@@ -1,12 +1,12 @@
 Name: nagvis
 Version: 1.8.5
-Release: 3.rgm
+Release: 4.rgm
 Summary: Nagios advanced map editor
 
 Group: Applications/System
 License: GPL
 URL: http://www.nagvis.org/
-Source0: %{name}-%{version}.tar.gz
+Source0: %{name}.tar.gz
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 
@@ -24,7 +24,7 @@ NagVis can be used to visualize Nagios Data, e.g. to display IT processes like a
 system or a network infrastructure.
 
 %prep
-%setup -T -b 0 -n %{name}-%{version}
+%setup -T -b 0 -n %{name}
 
 %install
 cd ..
@@ -35,8 +35,8 @@ install -d -m0755 %{buildroot}%{datadir}/share/var
 install -d -m0755 %{buildroot}%{datadir}/var/tmpl/cache
 install -d -m0755 %{buildroot}%{datadir}/var/tmpl/compile
 install -d -m0755 %{buildroot}%{_sysconfdir}/httpd/conf.d
-cp -afpvr %{name}-%{version}/* %{buildroot}%{datadir}
-cp -afpvr  %{name}-%{version}/docs/en_US %{buildroot}%{datadir}/docs/fr_FR
+cp -afpvr %{name}/* %{buildroot}%{datadir}
+cp -afpvr  %{name}/docs/en_US %{buildroot}%{datadir}/docs/fr_FR
 mv %{buildroot}%{datadir}/docs/ %{buildroot}%{datadir}/share/
 
 # RGM specifics
@@ -47,37 +47,43 @@ rm -rf %{buildroot}%{datadir}/etc/maps/*
 rm -rf %{buildroot}%{datadir}/share/userfiles/images/maps/*
 
 install -D -m 0644 %{_sourcedir}/%{name}-rgm/nagvis.ini.php  %{buildroot}%{rgm_docdir}/%{name}/nagvis.ini.php
-install -D -m 0644 %{_sourcedir}/%{name}-rgm/%{name}.conf  %{buildroot}%{rgm_docdir}/%{name}/httpd.conf
 install -D -m 0644 %{_sourcedir}/%{name}-rgm/nagvis.ini.php %{buildroot}%{datadir}/etc/nagvis.ini.php
-install -D -m 0644 %{_sourcedir}/%{name}-rgm/%{name}.conf %{buildroot}/%{_sysconfdir}/httpd/conf.d/15_%{name}.conf
+install -d -m0755 %{buildroot}%{rgm_docdir}/httpd
+install -D -m 0644 %{_sourcedir}/%{name}-rgm/httpd-nagvis.example.conf %{buildroot}%{rgm_docdir}/httpd/
 
 
 %clean
 rm -rf %{buildroot}
 
+
 %pre
 # create RGM system group if it doesn't already exists
 /usr/sbin/groupadd -r %{rgm_group} >/dev/null 2>&1 || :
+
 
 %post
 ln -nsf %{datadir} %{linkdir}
 chown -h %{rgm_user_nagios}:%{rgm_group} %{linkdir}
 chmod -R g+w %{datadir}*
-
+if [ -e %{_sysconfdir}/httpd/conf.d/15_%{name}.conf ]; then
+    rm -f %{_sysconfdir}/httpd/conf.d/15_%{name}.conf
+fi
 # execute SQL postinstall script
 /usr/share/rgm/manage_sql.sh -d %{rgm_db_nagvis} -u %{rgm_sql_internal_user} -p %{rgm_sql_internal_pwd}
 
+
 %files
-%defattr(0640, root, root, 0755)
-%config(noreplace) %{_sysconfdir}/httpd/conf.d/15_%{name}.conf
+%doc %{rgm_docdir}/%{name}
+%doc %{rgm_docdir}/httpd/httpd-nagvis.example.conf
 %defattr(0640, %{rgm_user_nagios}, %{rgm_group}, 0775)
 %config(noreplace) %{datadir}/etc
-%defattr(-, root, root, 0755)
-%{rgm_docdir}/%{name}
 %defattr(-, %{rgm_user_nagios}, %{rgm_group}, 0775)
 %{datadir}
 
+
 %changelog
+* Thu Mar 11 2021 Eric Belhomme <ebelhomme@fr.scc.com> - 1.8.5-4.rgm
+- move httpd config file as example file in /usr/share/doc/rgm/httpd/
 
 * Thu Oct 22 2020 Eric Belhomme <ebelhomme@fr.scc.com> - 1.8.5-3.rgm
 - fix authorization module to MySQL backend
