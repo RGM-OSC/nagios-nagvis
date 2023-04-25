@@ -1,6 +1,6 @@
 Name: nagvis
 Version: 1.8.5
-Release: 4.rgm
+Release: 5.rgm
 Summary: Nagios advanced map editor
 
 Group: Applications/System
@@ -10,7 +10,7 @@ Source0: %{name}.tar.gz
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 
-Requires: php, php-gd, php-mysql, php-mbstring, nagios, mk-livestatus, graphviz, rgm-base
+Requires: php, php-gd, php-mysqlnd, php-mbstring, nagios, mk-livestatus, graphviz, rgm-base
 BuildRequires: rpm-macros-rgm
 
 # define path
@@ -20,7 +20,7 @@ BuildRequires: rpm-macros-rgm
 
 %description
 NagVis is a visualization addon for the well known network managment system Nagios.
-NagVis can be used to visualize Nagios Data, e.g. to display IT processes like a mail 
+NagVis can be used to visualize Nagios Data, e.g. to display IT processes like a mail
 system or a network infrastructure.
 
 %prep
@@ -82,6 +82,9 @@ fi
 
 
 %changelog
+* Tue Apr 25 2023 Vincent Fricou <vfricou@fr.scc.com> - 1.8.5-5.rgm
+- fix requirement to php-mysqlnd
+
 * Thu Mar 11 2021 Eric Belhomme <ebelhomme@fr.scc.com> - 1.8.5-4.rgm
 - move httpd config file as example file in /usr/share/doc/rgm/httpd/
 
@@ -204,7 +207,7 @@ fi
 - packaged for EyesOfNetwork appliance 2.0
 
 * Mon Feb 23 2009 Jean-Philippe Levy <jeanphilippe.levy@gmail.com> - 1.3.2-1.eon
-- states order modified in NagVisStatefulObject.php 
+- states order modified in NagVisStatefulObject.php
 
 * Tue Nov 18 2008 Jean-Philippe Levy <jeanphilippe.levy@gmail.com> - 1.3.2-0.eon
 - packaged for EyesOfNetwork appliance
