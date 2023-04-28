@@ -2,7 +2,7 @@
  *
  * edit.js - Some NagVis edit code
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -21,58 +21,35 @@
  *
  *****************************************************************************/
 
-/**
- * @author	Lars Michelsen <lars@vertical-visions.de>
- */
-
-/**
- * Changes the handling of the line middle for lines with two parts
- */
-function toggleLineMidLock(event, objectId) {
-    getMapObjByDomObjId(objectId).toggleLineMidLock();
-
-    var event = !event ? window.event : event;
-    if(event.stopPropagation)
-    event.stopPropagation();
-    event.cancelBubble = true;
-    return false;
+function getTargetRaw(event) {
+    return event.target ? event.target : event.srcElement;
 }
 
-/**
- * Toggles the mode of the object: editable or not
- *
- * @author	Lars Michelsen <lars@vertical-visions.de>
- */
-function toggleMapObjectLock(event, objectId) {
-    updateNumUnlocked(getMapObjByDomObjId(objectId).toggleLock());
-
-    var event = !event ? window.event : event;
-    if(event.stopPropagation)
-    event.stopPropagation();
-    event.cancelBubble = true;
-    return false;
+function getTargetByClass(event, className) {
+    var target = getTargetRaw(event);
+    while (target && !has_class(target, className))
+        target = target.parentNode;
+    return target;
 }
 
-/**
- * Toggles the mode of all map objects: editable or not
- *
- * @author	Lars Michelsen <lars@vertical-visions.de>
- */
-function toggleAllMapObjectsLock() {
-    var lock = false;
-    if(iNumUnlocked > 0)
-        lock = true;
+function toggleMapObjectLock(event, object_id) {
+    g_view.toggleObjectLock(object_id);
+    return preventDefaultEvents(event);
+}
 
-    for(var i in oMapObjects)
-        updateNumUnlocked(oMapObjects[i].toggleLock(lock));
+// Toggles the mode of all map objects: editable or not
+function toggleAllMapObjectsLock(event) {
+    var lock = g_view.hasUnlocked();
 
-    if(!lock)
+    for (var object_id in g_view.objects)
+        g_view.toggleObjectLock(object_id, lock);
+
+    if (!lock)
         storeUserOption('unlocked-' + oPageProperties.map_name, '*');
     else
         storeUserOption('unlocked-' + oPageProperties.map_name, '');
+    return preventDefaultEvents(event);
 }
-
-/*** Handles the object dragging ***/
 
 var draggingEnabled = true;
 var draggingObject = null;
@@ -82,23 +59,215 @@ var dragObjectStartPos = null;
 var dragObjectChilds = {};
 var dragStopHandlers = {};
 var dragMoveHandlers = {};
+var dragObjects      = {};
 
-function getTargetRaw(event) {
-    return event.target ? event.target : event.srcElement;
+var g_resize_obj = null; //This gets a value as soon as a resize start
+
+/** Object resizing **/
+
+function g_resize_object() {
+    this.el        = null; //pointer to the object
+    this.dir    = "";      //type of current resize (n, s, e, w, ne, nw, se, sw)
+    this.grabx = null;     //Some useful values
+    this.graby = null;
+    this.width = null;
+    this.height = null;
+    this.left = null;
+    this.top = null;
 }
 
-function getTarget(event, ignoreType) {
-    if(typeof(ignoreType) === 'undefined')
-        var ignoreType = null;
+// Find out what kind of resize! Return a string inlcluding the directions
+function getDirection(event, el) {
+    var xPos, yPos, offset, dir;
+    dir = "";
 
-    var target = event.target ? event.target : event.srcElement;
-    while(target && (target.tagName != 'DIV' 
-          || typeof(target.id) === 'undefined'
-          || (ignoreType !== null && (target.id.split('-')[1] === ignoreType)))) {
-        target = target.parentNode;
+    // Handle IE and other browsers
+    xPos = event.offsetX ? event.offsetX : event.layerX ? event.layerX : 0;
+    yPos = event.offsetY ? event.offsetY : event.layerY ? event.layerY : 0;
+
+    // The distance from the edge in pixels
+    offset = 8;
+
+    if (yPos < offset) {
+        dir += "n";
+    }	else if (yPos > el.offsetHeight - offset) {
+        dir += "s";
     }
-    return target;
+
+    if(xPos < offset) {
+        dir += "w";
+    }	else if (xPos > el.offsetWidth - offset) {
+        dir += "e";
+    }
+
+    return dir;
 }
+
+function resizeMouseDown(event) {
+    event = event || window.event;
+    var target = getTargetByClass(event, 'resizeable');
+
+    if (!target || target.id == '')
+        return true;
+
+    var dir = getDirection(event, target);
+    if (dir == "")
+        return true;
+
+    // Disable dragging while resizing
+    draggingEnabled = false;
+    draggingObject = null;
+
+    g_resize_obj = new g_resize_object();
+
+    g_resize_obj.el = target;
+    g_resize_obj.dir = dir;
+
+    g_resize_obj.grabx  = event.clientX;
+    g_resize_obj.graby  = event.clientY;
+    g_resize_obj.width  = pxToInt(target.style.width);
+    g_resize_obj.height = pxToInt(target.style.height);
+    g_resize_obj.left   = pxToInt(target.style.left);
+    g_resize_obj.top    = pxToInt(target.style.top);
+
+    return preventDefaultEvents(event);
+}
+
+function resizeMouseUp(event) {
+    event = event || window.event;
+    if (g_resize_obj === null)
+        return true;
+
+    // Re-enable dragging
+    draggingEnabled = true;
+    draggingObject = null;
+
+    var dom_obj = g_resize_obj.el;
+
+    var objId = dom_obj.id.split('-')[0];
+    var objX = rmZoomFactor(pxToInt(dom_obj.style.left), true);
+    var objY = rmZoomFactor(pxToInt(dom_obj.style.top), true);
+    var objW = rmZoomFactor(parseInt(dom_obj.style.width));
+    var objH = rmZoomFactor(parseInt(dom_obj.style.height));
+
+    // (worldmap) X and Y are center coordinates, not the top/left corner
+    var objMarginTop = rmZoomFactor(pxToInt(dom_obj.style.marginTop), true);
+    var objMarginLeft = rmZoomFactor(pxToInt(dom_obj.style.marginLeft), true);
+    if (objMarginLeft && objMarginTop) {
+      objX = Math.round(objX + objMarginLeft + objW/2);
+      objY = Math.round(objY + objMarginTop + objH/2);
+    }
+
+    var parts = g_view.unproject(objX, objY);
+
+    saveObjectAttr(objId, {
+        'x': parts[0],
+        'y': parts[1],
+        'w': objW,
+        'h': objH
+    });
+
+    g_resize_obj = null;
+
+    return preventDefaultEvents(event);
+}
+
+function resizeMouseMove(event) {
+    event = event || window.event;
+    var target = getTargetByClass(event, 'resizeable');
+
+    // First update the cursor. This needs to be done even
+    // when not yet resizing to visualize that it is possible
+
+    if (target) {
+        var str = getDirection(event, target);
+
+        // Fix the cursor
+        if (str == "")
+            str = "";
+        else
+            str += "-resize";
+        target.style.cursor = str;
+    }
+
+    // The following code is only relevant when already resizing
+
+    if (g_resize_obj === null)
+        return true;
+
+    var scale = g_resize_obj.el.dataset.theScale ? g_resize_obj.el.dataset.theScale : 1;
+
+    var minWidth = 8 * scale, // The smallest width and height possible
+        minHeight = 8 * scale;
+
+    let grabOffsetX = event.clientX - g_resize_obj.grabx;
+    let grabOffsetY = event.clientY - g_resize_obj.graby;
+
+    if(g_resize_obj.dir.indexOf("e") != -1) {
+        grabOffsetX = Math.max(grabOffsetX, -g_resize_obj.width*scale + minWidth);
+
+        let newWidth = g_resize_obj.width + grabOffsetX/scale;
+        let newLeft = g_resize_obj.left + grabOffsetX/2;
+        let newMarginLeft = -newWidth/2;
+
+        g_resize_obj.el.style.width = newWidth + "px";
+        g_resize_obj.el.style.left = newLeft + "px";
+        g_resize_obj.el.style.marginLeft = newMarginLeft + "px";
+    }
+    if(g_resize_obj.dir.indexOf("s") != -1) {
+        grabOffsetY = Math.max(grabOffsetY, -g_resize_obj.height*scale + minHeight);
+
+        let newHeight = g_resize_obj.height + grabOffsetY/scale;
+        let newTop = g_resize_obj.top + grabOffsetY/2;
+        let newMarginTop = -newHeight/2;
+
+        g_resize_obj.el.style.height = newHeight + "px";
+        g_resize_obj.el.style.top = newTop + "px";
+        g_resize_obj.el.style.marginTop = newMarginTop + "px";
+    }
+
+    if(g_resize_obj.dir.indexOf("w") != -1) {
+        grabOffsetX = Math.min(grabOffsetX, g_resize_obj.width*scale - minWidth);
+
+        let newWidth = g_resize_obj.width - grabOffsetX/scale;
+        let newLeft = g_resize_obj.left + grabOffsetX/2;
+        let newMarginLeft = -newWidth/2;
+
+        g_resize_obj.el.style.width = newWidth + "px";
+        g_resize_obj.el.style.left = newLeft + "px";
+        g_resize_obj.el.style.marginLeft = newMarginLeft + "px";
+    }
+    if(g_resize_obj.dir.indexOf("n") != -1) {
+        grabOffsetY = Math.min(grabOffsetY, g_resize_obj.height*scale - minHeight);
+
+        let newHeight = g_resize_obj.height - grabOffsetY/scale;
+        let newTop = g_resize_obj.top + grabOffsetY/2;
+        let newMarginTop = -newHeight/2;
+
+        g_resize_obj.el.style.height = newHeight + "px";
+        g_resize_obj.el.style.top = newTop + "px";
+        g_resize_obj.el.style.marginTop = newMarginTop + "px";
+  }
+
+    return preventDefaultEvents(event);
+}
+
+function makeResizeable(trigger_obj) {
+    add_class(trigger_obj, 'resizeable');
+    addEvent(trigger_obj, 'mousedown', resizeMouseDown);
+    addEvent(trigger_obj, 'mouseup', resizeMouseUp);
+}
+
+function makeUnresizeable(trigger_obj) {
+    // when locking the object while the cursor is a resize cursor,
+    // it will stay as it is, when not removing them.
+    trigger_obj.style.cursor = '';
+    remove_class(trigger_obj, 'resizeable');
+    removeEvent(trigger_obj, 'mousedown', resizeMouseDown);
+    removeEvent(trigger_obj, 'mouseup', resizeMouseUp);
+}
+
+/*** Handles the object dragging ***/
 
 function getButton(event) {
     if (event.which == null)
@@ -109,171 +278,158 @@ function getButton(event) {
         return (event.which < 2) ? "LEFT" : ((event.which == 2) ? "MIDDLE" : "RIGHT");
 }
 
-function makeUndragable(objects) {
-    var len = objects.length;
-    if(len == 0)
-        return false;
+function makeUndragable(trigger_obj) {
+    delete dragStopHandlers[trigger_obj.id];
+    delete dragMoveHandlers[trigger_obj.id];
+    delete dragObjects[trigger_obj.id];
 
-    for(var i = 0; i < len; i++) {
-	if(typeof(objects[i]) === 'object')
-	    var o = objects[i];
-	else
-            var o = document.getElementById(objects[i]);
+    remove_class(trigger_obj, 'dragger');
 
-        if(o)  {
-            // Remove the handlers
-            delete dragStopHandlers[o.id];
-            delete dragMoveHandlers[o.id];
-
-            removeEvent(o, 'mousedown', dragStart);
-            removeEvent(o, 'mouseup',   dragStop);
-
-            o = null;
-        }
-    }
+    removeEvent(trigger_obj, 'mousedown', dragStart);
+    removeEvent(document, 'mouseup', dragStop);
 }
 
-function makeDragable(objects, dragStopHandler, dragMoveHandler) {
-    var len = objects.length;
-    if(len == 0)
-        return false;
+function makeDragable(trigger_obj, obj, dragStopHandler, dragMoveHandler) {
+    dragStopHandlers[trigger_obj.id] = dragStopHandler;
+    dragMoveHandlers[trigger_obj.id] = dragMoveHandler;
+    dragObjects[trigger_obj.id] = obj;
 
-    for(var i = 0; i < len; i++) {
-	if(typeof(objects[i]) === 'object')
-	    var o = objects[i];
-	else
-            var o = document.getElementById(objects[i]);
+    add_class(trigger_obj, 'dragger');
 
-        if(o) {
-            // Register the handlers
-            dragStopHandlers[o.id] = dragStopHandler;
-            dragMoveHandlers[o.id] = dragMoveHandler;
-
-            addEvent(o, "mousedown", dragStart);
-            // The drag stop event is registered globally on the whole document to prevent
-            // problems with too fast mouse movement which might lead to lag the dragging
-            // object behind the mouse and make it impossible to stop dragging.
-            addEvent(document, "mouseup", dragStop);
-            o = null;
-        }
-    }
-    len = null;
+    addEvent(trigger_obj, "mousedown", dragStart);
+    // The drag stop event is registered globally on the whole document to prevent
+    // problems with too fast mouse movement which might lead to lag the dragging
+    // object behind the mouse and make it impossible to stop dragging.
+    addEvent(document, "mouseup", dragStop);
 }
 
 /**
  * This function is called once an object is picked for dragging
  */
 function dragStart(event) {
-    if(!event)
-        event = window.event;
+    event = event || window.event;
 
-    var target = getTarget(event, 'icon');
+    var target = getTargetByClass(event, 'dragger');
     var button = getButton(event);
 
     // Skip calls when already dragging or other button than left mouse
-    if(draggingObject !== null || button != 'LEFT' || !draggingEnabled)
+    if (draggingObject !== null || button != 'LEFT' || !target || !draggingEnabled)
         return true;
 
-    var posx, posy;
-    if (event.pageX || event.pageY) {
-        posx = event.pageX;
-        posy = event.pageY;
-    } else if (event.clientX || event.clientY) {
-        posx = event.clientX;
-        posy = event.clientY;
-    }
+    contextHide();
 
-    /*if(event.stopPropagation)
-        event.stopPropagation();
-    event.cancelBubble = true;*/
+    var parts = getEventMousePos(event),
+        posx  = parts[0],
+        posy  = parts[1];
 
     draggingObject = target;
-    draggingObject.x = draggingObject.offsetLeft;
-    draggingObject.y = draggingObject.offsetTop;
+    draggingObject.x = rmZoomFactor(pxToInt(draggingObject.style.left), true);
+    draggingObject.y = rmZoomFactor(pxToInt(draggingObject.style.top), true);
 
     // Save relative offset of the mouse
-    dragObjectOffset   = [ posy - draggingObject.offsetTop - getHeaderHeight(),
-                           posx - draggingObject.offsetLeft ];
-    dragObjectStartPos = [ draggingObject.offsetTop, draggingObject.offsetLeft ];
+    dragObjectOffset   = [ posx - draggingObject.x, posy - draggingObject.y ];
+    dragObjectStartPos = [ draggingObject.x, draggingObject.y ];
 
     // Save diff coords of relative objects
     var sLabelName = target.id.replace('box_', 'rel_label_');
     var oLabel = document.getElementById(sLabelName);
     if(oLabel) {
-        dragObjectChilds[sLabelName] = [ oLabel.offsetTop - draggingObject.offsetTop,
-                                         oLabel.offsetLeft - draggingObject.offsetLeft ];
-        oLabel = null;
+        dragObjectChilds[sLabelName] = [ oLabel.offsetLeft - draggingObject.x,
+                                         oLabel.offsetTop - draggingObject.y ];
     }
-    sLabelName = null;
-
-    // Disable the default events for all the different browsers
-    if(event.preventDefault)
-        event.preventDefault();
-    else
-        event.returnValue = false;
-    return true;
+    return preventDefaultEvents(event);
 }
 
 /**
  * This function is called repeated while the object is being dragged
  */
 function dragObject(event) {
-    if(!event)
-        event = window.event;
+    event = event || window.event;
 
-    if(draggingObject === null || !draggingEnabled)
+    if (draggingObject === null || !draggingEnabled)
         return true;
 
-    var posx, posy;
-    if (event.pageX || event.pageY) {
-        posx = event.pageX;
-        posy = event.pageY;
-    } else if (event.clientX || event.clientY) {
-        posx = event.clientX;
-        posy = event.clientY;
-    }
+    var parts = getEventMousePos(event),
+        posx  = parts[0],
+        posy  = parts[1],
+        newLeft = posx - dragObjectOffset[0],
+        newTop  = posy - dragObjectOffset[1];
 
-    var newTop  = posy - dragObjectOffset[0] - getHeaderHeight();
-    var newLeft = posx - dragObjectOffset[1];
+    // skip further handling when moving out of screen
+    if (typeof posx === 'undefined' || typeof posy === undefined)
+        return preventDefaultEvents(event);
 
     draggingObject.style.position = 'absolute';
-    draggingObject.style.top  = newTop + 'px';
-    draggingObject.style.left = newLeft + 'px';
-    draggingObject.x = rmZoomFactor(newLeft, true);
-    draggingObject.y = rmZoomFactor(newTop, true);
+    draggingObject.style.left = addZoomFactor(newLeft) + 'px';
+    draggingObject.style.top  = addZoomFactor(newTop) + 'px';
+    draggingObject.x = newLeft;
+    draggingObject.y = newTop;
 
     // When this object has a relative coordinated label, then move this too
     moveRelativeObject(draggingObject.id, newTop, newLeft);
+
+    // Is this object currently relative positioned?
+    var idParts = draggingObject.id.split('-');
+    var obj = g_view.objects[idParts[0]];
+    var parents;
+    if (obj.conf.view_type === 'line') {
+        var anchorId = idParts[2];
+        parents = obj.getParentObjectIds(anchorId);
+    } else {
+        parents = obj.getParentObjectIds();
+    }
+    var isRel = Object.keys(parents).length > 0;
+
+    // Unhighlight all other objects
+    for(var i in g_view.objects)
+        g_view.objects[i].highlight(false);
+
+
+    // Highlight parents when relative
+    for (var objectId in parents)
+        g_view.objects[objectId].highlight(true);
 
     // With pressed CTRL key the icon should be docked
     // This means the object will be positioned relative to that object
     // This code only highlights that object. When the CTRL key is still pressed
     // when dropping the object the currently moved object will be positioned
     // relative to this object.
+    var msg = null;
     if(event.ctrlKey) {
-        // Unhighlight all other objects
-        for(var i in oMapObjects)
-            oMapObjects[i].highlight(false);
-
         // Find the nearest object to the current position and highlight it
         var o = getNearestObject(draggingObject, newLeft, newTop)
         if(o) {
             o.highlight(true);
             o = null;
         }
+
+        if (!isRel)
+            msg = 'Hold CTRL till drop for relative positioning';
     }
 
-    // Shift key
-    if(event.shiftKey) {
-        // Unhighlight all other objects
-        for(var i in oMapObjects)
-            oMapObjects[i].highlight(false);
+    // Shift key makes the object absolute positioned when still held during dropping
+    else if (event.shiftKey) {
+        // Unhighlight all objects
+        for(var a in g_view.objects)
+            g_view.objects[a].highlight(false);
+
+        if (isRel)
+            msg = 'Hold SHIFT till drop for absolute positioning';
+    } else {
+        if (isRel)
+            msg = 'Press SHIFT for absolute positioning';
+        else
+            msg = 'Press CTRL for relative positioning';
     }
+
+    if (msg !== null)
+        displayStatusMessage(msg, 'notice', true);
 
     // Call the dragging handler when one is set
     if(dragMoveHandlers[draggingObject.id])
-        dragMoveHandlers[draggingObject.id](draggingObject, event);
-    oParent = null;
+        dragMoveHandlers[draggingObject.id](draggingObject,
+                                            dragObjects[draggingObject.id], event);
+    return preventDefaultEvents(event);
 }
 
 /**
@@ -287,8 +443,8 @@ function getNearestObject(draggingObject, x, y) {
     var dist;
 
     var obj;
-    for(var i in oMapObjects) {
-        obj = oMapObjects[i];
+    for(var i in g_view.objects) {
+        obj = g_view.objects[i];
 
         // Skip own object
         if(draggingObject.id.split('-')[0] == obj.conf.object_id)
@@ -325,7 +481,7 @@ function coordsReferTo(obj, target_object_id) {
     if (obj.conf.object_id == target_object_id) {
         return true;
     }
-    
+
     if (isRelativeCoord(obj.conf.x)) {
         var xParent = getMapObjByDomObjId(obj.getCoordParent(obj.conf.x, -1));
         if(coordsReferTo(xParent, target_object_id)) {
@@ -349,8 +505,8 @@ function moveRelativeObject(parentId, parentTop, parentLeft) {
         var oLabel = document.getElementById(sLabelName);
         if(oLabel) {
             oLabel.style.position = 'absolute';
-            oLabel.style.top  = (dragObjectChilds[sLabelName][0] + parentTop) + 'px';
-            oLabel.style.left = (dragObjectChilds[sLabelName][1] + parentLeft) + 'px';
+            oLabel.style.left = (dragObjectChilds[sLabelName][0] + parentLeft) + 'px';
+            oLabel.style.top  = (dragObjectChilds[sLabelName][1] + parentTop) + 'px';
             oLabel = null;
         }
     }
@@ -362,32 +518,34 @@ function dragStop(event) {
        || typeof draggingObject.y == 'undefined' || typeof draggingObject.x == 'undefined')
         return;
 
+    hideStatusMessage();
+
     // When x or y are negative just return this and make no change
     if(draggingObject.y < 0 || draggingObject.x < 0) {
-        draggingObject.style.top  = dragObjectStartPos[0] + 'px';
-        draggingObject.style.left = dragObjectStartPos[1] + 'px';
-        draggingObject.x = dragObjectStartPos[1];
-        draggingObject.y = dragObjectStartPos[0];
+        draggingObject.style.left = dragObjectStartPos[0] + 'px';
+        draggingObject.style.top  = dragObjectStartPos[1] + 'px';
+        draggingObject.x = dragObjectStartPos[0];
+        draggingObject.y = dragObjectStartPos[1];
 
-        moveRelativeObject(draggingObject.id, dragObjectStartPos[0], dragObjectStartPos[1]);
+        moveRelativeObject(draggingObject.id, dragObjectStartPos[1], dragObjectStartPos[0]);
 
         // Call the dragging handler when one is set
         if(dragMoveHandlers[draggingObject.id])
-            dragMoveHandlers[draggingObject.id](draggingObject, event);
+            dragMoveHandlers[draggingObject.id](draggingObject, dragObjects[draggingObject.id], event);
 
         draggingObject = null;
         return;
     }
 
     // Skip when the object has not been moved
-    if(draggingObject.y == dragObjectStartPos[0] && draggingObject.x == dragObjectStartPos[1]) {
+    if(draggingObject.y == dragObjectStartPos[1] && draggingObject.x == dragObjectStartPos[0]) {
         draggingObject = null;
         return;
     }
 
     var oParent = null;
     if(event.ctrlKey) {
-        var oParent = getNearestObject(draggingObject, draggingObject.x, draggingObject.y);
+        oParent = getNearestObject(draggingObject, draggingObject.x, draggingObject.y);
         if(oParent)
             oParent.highlight(false);
     }
@@ -399,7 +557,7 @@ function dragStop(event) {
     for(var objectId in getMapObjByDomObjId(draggingObject.id.split('-')[0]).getParentObjectIds())
         getMapObjByDomObjId(objectId).highlight(false);
 
-    dragStopHandlers[draggingObject.id](draggingObject, oParent);
+    dragStopHandlers[draggingObject.id](draggingObject, dragObjects[draggingObject.id], oParent);
 
     oParent = null;
     draggingObject    = null;
@@ -438,24 +596,21 @@ function cloneObject(e, objId) {
 /**
  * Is called once to start the object creation
  */
-function addObject(e, objType, viewType, numLeft, action) {
+function addObject(event, objType, viewType, numLeft, action) {
+    event = event || window.event;
+
     addObjType  = objType;
     addViewType = viewType;
     addNumLeft  = numLeft;
     addAction   = action;
 
-    if(document.body)
-        document.body.style.cursor = 'crosshair';
+    add_class(document.body, 'add');
 
-    var event = !e ? window.event : e;
-    if(event.stopPropagation)
-        event.stopPropagation();
-    event.cancelBubble = true;
-    return false;
+    return preventDefaultEvents(event);
 }
 
-function getEventMousePos(e) {
-    var event = !e ? window.event : e;
+function getEventMousePos(event) {
+    event = event || window.event;
 
     // Only accept "left" mouse clicks
     if(getButton(event) != 'LEFT')
@@ -472,6 +627,7 @@ function getEventMousePos(e) {
         }
     }
 
+    var posx, posy;
     if (event.pageX || event.pageY) {
         posx = event.pageX;
         posy = event.pageY;
@@ -492,10 +648,8 @@ function getEventMousePos(e) {
     return [ posx, posy ];
 }
 
-function stop_adding() {
-    if(document.body)
-        document.body.style.cursor = 'default';
-
+function stopAdding() {
+    remove_class(document.body, 'add');
     addObjType  = null,
     addViewType = null,
     addNumLeft  = null,
@@ -508,15 +662,15 @@ function stop_adding() {
 
 function addClick(e) {
     if(!adding())
-        return;
+        return true;
 
     var pos = getEventMousePos(e);
     if (pos === false) {
         // abort adding when clicking on the header
-        stop_adding();
-        return;
+        stopAdding();
+        return false;
     }
-        
+
     addX.push(pos[0] - getSidebarWidth());
     addY.push(pos[1]);
     addNumLeft -= 1;
@@ -535,16 +689,20 @@ function addClick(e) {
     }
 
     if(addNumLeft > 0)
-        return;
+        return false;
 
     //
     // If this is reached all object coords have been collected
     //
 
     if(addObjType == 'textbox' || addObjType == 'container') {
-        var w = addX.pop();
-        var h = addY.pop();
+        var w = addX.pop() - addX[0];
+        var h = addY.pop() - addY[0];
     }
+
+    var parts = g_view.unproject(addX, addY);
+    addX = parts[0];
+    addY = parts[1];
 
     var sUrl = '';
     if(addAction == 'add' || addAction == 'clone')
@@ -554,7 +712,7 @@ function addClick(e) {
                + '&x=' + addX.join(',')
                + '&y=' + addY.join(',');
 
-    if(addObjType != 'textbox' && addObjType != 'container' 
+    if(addObjType != 'textbox' && addObjType != 'container'
        && addObjType != 'shape' && addViewType != 'icon' && addViewType != '')
         sUrl += '&view_type=' + addViewType;
 
@@ -562,7 +720,7 @@ function addClick(e) {
         sUrl += '&clone_id=' + cloneId;
 
     if(addObjType == 'textbox' || addObjType == 'container')
-        sUrl += '&w=' + (w - addX[0]) + '&h=' + (h - addY[0]);
+        sUrl += '&w=' + w+ '&h=' + h;
 
     if(sUrl === '')
         return false;
@@ -574,9 +732,8 @@ function addClick(e) {
     }
 
     showFrontendDialog(sUrl, _('Create Object'));
-    sUrl = '';
-
-    stop_adding();
+    stopAdding();
+    return false;
 }
 
 function adding() {
@@ -585,72 +742,25 @@ function adding() {
 
 function addFollowing(e) {
     if(!addFollow)
-        return;
+        return true;
 
     var pos = getEventMousePos(e);
+
+    var start_x = addZoomFactor(addX[0]),
+        start_y = addZoomFactor(addY[0]);
+
+    var end_x = addZoomFactor(pos[0]),
+        end_y = addZoomFactor(pos[1]);
 
     addShape.clear();
 
     if(addViewType === 'line' || addObjType === 'line')
-        addShape.drawLine(addX[0], addY[0], pos[0] - getSidebarWidth(), pos[1]);
+        addShape.drawLine(start_x, start_y, end_x - getSidebarWidth(), end_y);
     else
-        addShape.drawRect(addX[0], addY[0], (pos[0] - getSidebarWidth() - addX[0]), (pos[1] - addY[0]));
+        addShape.drawRect(start_x, start_y, (end_x - getSidebarWidth() - start_x),
+                                            (end_y - start_y));
 
     addShape.paint();
-}
-
-/************************************************
- * Register events
- *************************************************/
-
-// First firefox and then the IE
-if (window.addEventListener) {
-  window.addEventListener("mousemove", function(e) {
-    dragObject(e);
-    addFollowing(e);
-    return false;
-  }, false);
-
-  window.addEventListener("click", function(e) {
-    addClick(e);
-    return false;
-  }, false);
-} else {
-  document.documentElement.onmousemove  = function(e) {
-    dragObject(e);
-    addFollowing(e);
-    return false;
-  };
-
-  document.documentElement.onclick = function(e) {
-    addClick(e);
-    // Never return false here! This would prevent open links in IE
-    return true;
-  };
-}
-
-/**
- * validateValue(oField)
- *
- * This function checks a string for valid format. The check is done by the
- * given regex.
- * @FIXME: Remove this. Replace dialogs with "server validate"
- * @author	Lars Michelsen <lars@vertical-visions.de>
- */
-function validateValue(sName, sValue, sRegex) {
-    // Remove PHP delimiters
-    sRegex = sRegex.replace(/^\//, "");
-    sRegex = sRegex.replace(/\/[iugm]*$/, "");
-
-    // Match the current value
-    var regex = new RegExp(sRegex, "i");
-    var match = regex.exec(sValue);
-    if(sValue == '' || match != null) {
-        return true;
-    } else {
-        alert(printLang(lang['wrongValueFormatOption'],'ATTRIBUTE~'+sName));
-        return false;
-    }
 }
 
 function useGrid() {
@@ -659,67 +769,66 @@ function useGrid() {
 
 /**
  * Parses a grind to make the alignment of the icons easier
- *
- * @author  Lars Michelsen <lars@vertical-visions.de>
  */
 function gridParse() {
     // Only show when user configured to see a grid
-    if(useGrid()) {
-        // Create grid container and append to map
-        var oGrid = document.createElement('div');
+    if (!useGrid())
+        return;
+
+    // Create grid container and append to map
+    var oGrid = document.getElementById('grid');
+    if (!oGrid) {
+        oGrid = document.createElement('div');
         oGrid.setAttribute('id', 'grid');
         document.getElementById('map').appendChild(oGrid);
-        oGrid = null;
-
-        // Add an options: grid_show, grid_steps, grid_color
-        var grid = new jsGraphics('grid');
-        grid.setColor(oViewProperties.grid_color);
-        grid.setStroke(1);
-
-        var gridStep = addZoomFactor(oViewProperties.grid_steps);
-
-        // Start
-        var gridYStart = 0;
-        var gridXStart = 0;
-
-        // End: Get screen height, width
-        var gridYEnd = pageHeight() - getHeaderHeight();
-        var gridXEnd = pageWidth();
-
-        // Draw vertical lines
-        for(var gridX = gridStep; gridX < gridXEnd; gridX = gridX + gridStep) {
-            grid.drawLine(gridX, gridYStart, gridX, gridYEnd);
-        }
-        // Draw horizontal lines
-        for(var gridY = gridStep; gridY < gridYEnd; gridY = gridY + gridStep) {
-            grid.drawLine(gridXStart, gridY, gridXEnd, gridY);
-        }
-
-        grid.paint();
-
-        gridXEnd = null
-        gridYEnd = null;
-        gridXStart = null;
-        gridYStart = null;
-        gridStep = null;
-        grid = null;
-
-        addEvent(window, "resize", gridRedraw);
     }
+    else {
+        while (oGrid.firstChild) {
+            oGrid.removeChild(oGrid.firstChild);
+        }
+    }
+
+    // Add options: grid_show, grid_steps, grid_color
+    var line = document.createElement('div');
+    line.style.backgroundColor = oViewProperties.grid_color;
+
+    var gridStep = addZoomFactor(oViewProperties.grid_steps);
+    var gridYStart = 0;
+    var gridXStart = 0;
+    var gridYEnd = pageHeight() - getHeaderHeight();
+    var gridXEnd = pageWidth();
+
+    var vline = null;
+    for(var gridX = gridStep; gridX < gridXEnd; gridX = gridX + gridStep) {
+        vline = line.cloneNode();
+        vline.className = "vertical";
+        vline.style.left   = gridX + 'px';
+        vline.style.top    = gridYStart + 'px';
+        vline.style.bottom = 0;
+        oGrid.appendChild(vline);
+    }
+
+    var hline;
+    for(var gridY = gridStep; gridY < gridYEnd; gridY = gridY + gridStep) {
+        hline = line.cloneNode();
+        hline.className = "horizontal";
+        hline.style.top    = gridY +'px';
+        hline.style.left   = gridXStart + 'px';
+        hline.style.right  = 0;
+        oGrid.appendChild(hline);
+    }
+
+    addEvent(window, "resize", gridRedraw);
+    addEvent(window, "scroll", gridRedraw);
 }
 
 function gridRemove() {
-    var oMap = document.getElementById('map');
-    if(oMap) {
-        var oGrid = document.getElementById('grid')
-        if(oGrid) {
-            oMap.removeChild(oGrid);
-            oGrid = null;
-        }
-        oMap = null;
-    }
+    var oGrid = document.getElementById('grid');
+    if (oGrid)
+        oGrid.parentNode.removeChild(oGrid);
 
     removeEvent(window, "resize", gridRedraw);
+    removeEvent(window, "scroll", gridRedraw);
 }
 
 function gridRedraw() {
@@ -730,8 +839,6 @@ function gridRedraw() {
 /**
  * Toggle the grid state in the current view and sends
  * current setting to server component for persistance
- *
- * @author  Lars Michelsen <lars@vertical-visions.de>
  */
 function gridToggle() {
     // Toggle the grid state
@@ -743,17 +850,9 @@ function gridToggle() {
         gridParse();
     }
 
-    // Send current option to server component
-    var url = oGeneralProperties.path_server+'?mod=Map&act=modifyObject&map='
-              + oPageProperties.map_name+'&type=global&id=0&grid_show='+oViewProperties.grid_show;
-
-    // Sync ajax request
-    var oResult = getSyncRequest(url);
-    if(oResult && oResult.status != 'OK') {
-        alert(oResult.message);
-    }
-
-    oResult = null;
+    // Send current option to server for persistance
+    call_ajax(oGeneralProperties.path_server+'?mod=Map&act=modifyObject&map='
+              + oPageProperties.map_name+'&type=global&id=0&grid_show='+oViewProperties.grid_show);
 }
 
 /**
@@ -767,7 +866,7 @@ function coordsToGrid(x, y) {
         y = y.split(',');
         for(var i = 0; i < x.length; i++) {
             x[i] = x[i] - (x[i] % addZoomFactor(oViewProperties.grid_steps));
-            y[i] = y[i] - (y[i] % addZoomFactor(ooViewProperties.grid_steps));
+            y[i] = y[i] - (y[i] % addZoomFactor(oViewProperties.grid_steps));
         }
         return [ x.join(','), y.join(',') ];
     } else {
@@ -779,13 +878,13 @@ function coordsToGrid(x, y) {
     }
 }
 
-function toggle_maincfg_section(sec) {
-    var tables = document.getElementsByClassName('section');
-    for (var i = 0; i < tables.length; i++) {
-        if (tables[i].id == 'sec_' + sec)
-            tables[i].style.display = '';
+function toggle_section(sec) {
+    var sections = document.getElementsByClassName('section');
+    for (var i = 0; i < sections.length; i++) {
+        if (sections[i].id == 'sec_' + sec)
+            sections[i].style.display = '';
         else
-            tables[i].style.display = 'none';
+            sections[i].style.display = 'none';
     }
 
     // update the navigation
@@ -799,32 +898,6 @@ function toggle_maincfg_section(sec) {
 
     // update the helper field value
     document.getElementById('sec').value = sec;
-}
-
-function printLang(sLang, sReplace) {
-    if(typeof sLang === 'undefined')
-        return '';
-
-    sLang = sLang.replace(/<(\/|)(i|b)>/ig, '');
-    sLang = sLang.replace('&auml;', 'ä').replace('&uuml;', 'ü');
-    sLang = sLang.replace('&ouml;', 'ö').replace('&szlig;', '');
-
-    // sReplace maybe optional
-    if(typeof sReplace != "undefined") {
-        aReplace = sReplace.split(",");
-        for(var i = 0; i < aReplace.length; i++) {
-            var aReplaceSplit = aReplace[i].split("~");
-            sLang = sLang.replace("["+aReplaceSplit[0]+"]",aReplaceSplit[1]);
-        }
-    }
-
-    return sLang;
-}
-
-// checks that the file the user wants to upload has a valid extension
-function checkPngGifOrJpg(imageName) {
-    var type = imageName.substring(imageName.length-3,imageName.length).toLowerCase();
-    return type == 'png' || type == 'jpg' || type == 'gif';
 }
 
 // Toggles the state of an option (Showing inherited value or the current configured value)
@@ -863,3 +936,63 @@ function pickWindowSize(id, dimension) {
     }
     o = null;
 }
+
+function updateUserRoles(bAdd) {
+    var user_roles = document.getElementById('user_roles');
+    var available  = document.getElementById('roles_available');
+    var selected   = document.getElementById('roles_selected');
+    var source, target;
+    if (bAdd) {
+        source = available;
+        target = selected;
+    } else {
+        source = selected;
+        target = available;
+    }
+
+    // Quit when no source selected
+    if (source.selectedIndex === -1)
+        return false;
+
+    // Save strings
+    var optName  = source.options[source.selectedIndex].text;
+    var optValue = source.options[source.selectedIndex].value;
+
+    // Move from source to target
+    source.options.remove(source.selectedIndex);
+    target.options[target.options.length] = new Option(optName, optValue, false, false);
+
+    // now update the internal helper field with the selected options
+    var selected_values = [];
+    for(var i = 0; i < selected.options.length; i++) {
+        selected_values.push(selected.options[i].value);
+    }
+    user_roles.value = selected_values.join(',');
+}
+
+function addOption(form) {
+    var field = form.num_options;
+    field.value = parseInt(field.value) + 1;
+    updateForm(form);
+}
+
+// Removes an element from the map
+function removeMapObject(event, object_id) {
+    event = event || window.event;
+    g_view.removeObject(object_id);
+    return preventDefaultEvents(event);
+}
+
+/************************************************
+ * Register events
+ *************************************************/
+
+addEvent(document, 'mousemove', function(event) {
+    return resizeMouseMove(event)
+            && dragObject(event)
+            && addFollowing(event);
+});
+
+addEvent(document, 'click', function(event) {
+    return addClick(event);
+});

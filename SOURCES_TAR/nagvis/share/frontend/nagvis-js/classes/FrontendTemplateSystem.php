@@ -3,7 +3,7 @@
  *
  * FrontendTemplateSystem.php - Implements the template parsing in NagVis
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -23,7 +23,7 @@
  *****************************************************************************/
 
 /**
- * @author	Lars Michelsen <lars@vertical-visions.de>
+ * @author	Lars Michelsen <lm@larsmichelsen.com>
  */
 class FrontendTemplateSystem {
     private $TMPL;
@@ -42,7 +42,14 @@ class FrontendTemplateSystem {
     }
 
     public function getTmplFile($sTheme, $sTmpl) {
-        return new Dwoo_Template_File(path('sys', '', 'templates', $sTheme.'.'.$sTmpl.'.html'));
+        $F = new Dwoo_Template_File(path('sys', '', 'templates', $sTheme.'.'.$sTmpl.'.html'));
+        // Would rather set this to null to make the template system not call chmod at all to use
+        // the system default, but this does not work because makeDirectory() uses 0777 in case
+        // it is set to null.
+        // Would rather set 640 for the files, but there is only a single chmod value configurable
+        // which is used for directories AND files. So I have to use 750.
+        $F->setChmod(0750);
+        return $F;
     }
 }
 

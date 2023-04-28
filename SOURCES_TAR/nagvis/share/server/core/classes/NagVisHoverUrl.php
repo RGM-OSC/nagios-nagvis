@@ -3,7 +3,7 @@
  *
  * NagVisHoverUrl.php - Class for handling the hover urls
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -23,7 +23,7 @@
  *****************************************************************************/
 
 /**
- * @author    Lars Michelsen <lars@vertical-visions.de>
+ * @author    Lars Michelsen <lm@larsmichelsen.com>
  */
 class NagVisHoverUrl {
     private $CORE;
@@ -35,7 +35,7 @@ class NagVisHoverUrl {
      * Class Constructor
      *
      * @param     GlobalCore     $CORE
-     * @author     Lars Michelsen <lars@vertical-visions.de>
+     * @author     Lars Michelsen <lm@larsmichelsen.com>
      */
     public function __construct($CORE, $url) {
         $this->CORE = $CORE;
@@ -52,7 +52,7 @@ class NagVisHoverUrl {
      *
      * "Magic method" returns the contents of the hover url
      *
-     * @author    Lars Michelsen <lars@vertical-visions.de>
+     * @author    Lars Michelsen <lm@larsmichelsen.com>
      */
     public function __toString() {
         return $this->code;
@@ -63,7 +63,7 @@ class NagVisHoverUrl {
      *
      * Reads the given hover url form an object and forms it to a readable format for the hover box
      *
-     * @author    Lars Michelsen <lars@vertical-visions.de>
+     * @author    Lars Michelsen <lm@larsmichelsen.com>
      */
     private function readHoverUrl() {
         /* Context is supported in php >= 5.0
@@ -84,7 +84,7 @@ class NagVisHoverUrl {
         // Only allow urls not paths for security reasons
         // Reported here: http://news.gmane.org/find-root.php?message_id=%3cf60c42280909021938s7f36c0edhd66d3e9156a5d081%40mail.gmail.com%3e
         $aUrl = parse_url($this->url);
-        if(!isset($aUrl['scheme']) || $aUrl['scheme'] == '')
+        if(!isset($aUrl['scheme']) || $aUrl['scheme'] == '' || ($aUrl['scheme'] != 'http' && $aUrl['scheme'] != 'https'))
             throw new NagVisException(l('problemReadingUrl', Array('URL' => $this->url,
                                                                    'MSG' => l('Not allowed url'))));
 
@@ -107,7 +107,7 @@ class NagVisHoverUrl {
      *
      * Replace unwanted things from the code
      *
-     * @author     Lars Michelsen <lars@vertical-visions.de>
+     * @author     Lars Michelsen <lm@larsmichelsen.com>
      */
     private function cleanCode() {
         $this->code = str_replace('"','\\\'',str_replace('\'','\\\'',str_replace("\t",'',str_replace("\n",'',str_replace("\r\n",'',$this->code)))));

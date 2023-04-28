@@ -24,7 +24,7 @@
         <li><a href="#shape">Shape</a></li>
         <li><a href="#line">Line</a></li>
         <li><a href="#template">Template</a></li>
-        <li><a href="#container">Container</a> (<font color="#ff0000">New in 1.7.1</font>)</li>
+        <li><a href="#container">Container</a></li>
         <li><a href="#dyngroup">Dynamic Group</a> (<font color="#ff0000">New in 1.8b1</font>)</li>
         <li><a href="#aggr">Aggregation</a> (<font color="#ff0000">New in 1.8rc2</font>)</li>
         </ul>
@@ -162,9 +162,6 @@
         <td>grid_steps</td><td>inherited (<a href="nagvis_config_format_description.html">nagvis.ini.php</a>)</td><td>Scale of the grid in px.</td>
         </tr>
         <tr>
-        <td> header_fade </td><td>inherited (<a href="nagvis_config_format_description.html">nagvis.ini.php</a>)</td><td>Enable/Disable the fade effect of the submenus in the header menu (When the used header menu supports that option).</td>
-        </tr>
-        <tr>
         <td> header_menu </td><td> inherited (<a href="nagvis_config_format_description.html">nagvis.ini.php</a>) </td><td> Enable/Disable the header menu </td>
         </tr>
         <tr>
@@ -195,7 +192,18 @@
         <td> <strike>hover_timeout</strike> </td><td> <strike>inherited (<a href="nagvis_config_format_description.html">nagvis.ini.php</a>)</strike> </td><td> <strike>Default hover menu ajax request timeout in seconds</strike> <font color="#ff0000">(Deprecated in 1.4)</font></td>
         </tr>
         <tr>
-        <td> iconset </td><td> inherited (<a href="nagvis_config_format_description.html">nagvis.ini.php</a>) </td><td> Iconset to use as default for all objects placed on the map. Can be overwritten on a per object base. <br>In the example "std_small" is used which means an OK state will be displayed using "std_small_<i>ok</i>.png", a CRITICAL state will be displayed by using "std_small_<i>critical</i>.png" and so on. </td>
+            <td>iconset</td>
+            <td>inherited (<a href="nagvis_config_format_description.html">nagvis.ini.php</a>)</td>
+            <td>Iconset to use as default for all objects placed on the map. Can be overwritten on a per object base.<br>
+                In the example "std_small" is used which means an OK state will be displayed using "std_small_<i>ok</i>.png",
+                a CRITICAL state will be displayed by using "std_small_<i>critical</i>.png" and so on. </td>
+        </tr>
+        <tr>
+            <td>icon_size</td>
+            <td>inherited (<a href="nagvis_config_format_description.html">nagvis.ini.php</a>)</td>
+            <td>Scales the iconsets up or down while showing in the map. If left empty, the iconset images will be displayed
+                at their natural size. You can configure this option with either a single integer for giving width and height
+                at once, but you can also provide two comma separated integers to specify different values forr the width and height.
         </tr>
         <tr>
         <td> in_maintenance </td><td> 0 </td><td> Enable/Disable the maintenance mode of this map. If a map is in maintenance mode only a message gets displayed instead of the map. </td>
@@ -228,18 +236,13 @@
         </tr>
 
         <tr>
-        <td>line_arrow</td><td>forward</td>
-        <td>This defines the arrows at the end of the line. At the moment this
-        attribute is only being used for the lines between hosts on the automap. Possible values: forward, back, both, none.</td>
-        </tr>
-        <tr>
         <td> line_type </td><td></td><td>Specifies the type of line when view_type=line. Valid values are:<br /> &quot;11&quot; for lines with one arrow at the end of a line.<br /> &quot;10&quot; for lines with two arrows pointing to each other in the middle of the line.<br /> &quot;12&quot; for plain lines without arrow.</td>
         </tr>
         <tr>
         <td>line_width</td><td>3</td><td>This defines the width of the line in px when this object is being displayed as line.</td>
         </tr>
         <tr>
-        <td>line_weather_colors</td><td>inherited (<a href="nagvis_config_format_description.html">nagvis.ini.php</a>)</td><td>This defines the colours of weathermap colours in the different percentage levels. For example above 10% load it will be coloured #8c00ff. <font color="#ff0000">(New in 1.6)</font></td>
+        <td>line_weather_colors</td><td>inherited (<a href="nagvis_config_format_description.html">nagvis.ini.php</a>)</td><td>This defines the colours of weathermap colours in the different percentage levels. For example above 10% load it will be coloured #8c00ff.</td>
         </tr>
         
         <tr>
@@ -247,7 +250,7 @@
         </tr>
         <tr>
         <tr>
-        <td>parent_map</td><td></td><td>The parent map of this map. This option is only used in the menu visualisations of the header menu and sidebar <font color="#ff0000">(New in 1.6)</font></td>
+        <td>parent_map</td><td></td><td>The parent map of this map. This option is only used in the menu visualisations of the header menu and sidebar</td>
         </tr>
         <tr>
         <td> recognize_services </td><td> inherited (<a href="nagvis_config_format_description.html">nagvis.ini.php</a>) </td><td> Sets whether the states of the services on hosts, hostgroup objects should be recognised. If this is not given in the config it's set to 1. </td>
@@ -256,6 +259,12 @@
         <td> show_in_lists </td><td> inherited (<a href="nagvis_config_format_description.html">nagvis.ini.php</a>) </td><td> Show the maps in lists (dropdowns, index page, ...) </td>
         </tr>
         <tr>
+        <td>ignore_linked_maps_summary_state</td>
+	<td>0</td>
+	<td>Ignore child map summary state in parent's summary state</td>
+        </tr>
+        <tr>
+	
         <td> show_in_multisite</td><td> inherited (<a href="nagvis_config_format_description.html">nagvis.ini.php</a>) </td><td>Show the maps in multisite snapin</td>
         </tr>
         <tr>
@@ -264,6 +273,51 @@
         <tr>
         <td> url_target </td><td> _self </td><td> Target of the Icon link, this option adapts &lt;a target=""> (_self is same window) </td>
         </tr>
+
+        <tr>
+            <td>host_url</td>
+            <td>inherited (<a href="nagvis_config_format_description.html">nagvis.ini.php</a>)</td>
+            <td>The default url to follow when a user left-clicks on a host object. Available macros: [htmlcgi], [htmlbase], [host_name], [backend_id]</td>
+        </tr>
+        <tr>
+            <td>hostgroup_url</td>
+            <td>inherited (<a href="nagvis_config_format_description.html">nagvis.ini.php</a>)</td>
+        <td>The default url to follow when a user left-clicks on an hostgroup object.
+          Available macros: [htmlcgi], [htmlbase], [hostgroup_name], [backend_id]</td>
+        </tr>
+        <tr>
+            <td>serviceurl</td>
+            <td>inherited (<a href="nagvis_config_format_description.html">nagvis.ini.php</a>)</td>
+        <td>The default url to follow when a user left-clicks on an service object.
+          Available macros: [htmlcgi], [htmlbase], [host_name], [service_description], [backend_id]</td>
+        </tr>
+        <tr>
+            <td>servicegroup_url</td>
+            <td>inherited (<a href="nagvis_config_format_description.html">nagvis.ini.php</a>)</td>
+            <td>The default url to follow when a user left-clicks on an servicegroup object.
+              Available macros: [htmlcgi], [htmlbase], [servicegroup_name], [backend_id]</td>
+        </tr>
+        <tr>
+            <td>dyngroup_url</td>
+            <td>inherited (<a href="nagvis_config_format_description.html">nagvis.ini.php</a>)</td>
+            <td>The default url to follow when a user left-clicks on a dynamic group object.
+                This is disabled by default, because there is no good link target in the default
+                web GUI. So if you use another web GUI, there might be a useful target.
+              Available macros: [htmlcgi], [htmlbase], [dyngroup_name], [backend_id]</td>
+        </tr>
+        <tr>
+            <td>aggr_url</td>
+            <td>inherited (<a href="nagvis_config_format_description.html">nagvis.ini.php</a>)</td>
+            <td>The default url to follow when a user left-clicks on an aggregation object.
+              Available macros: [htmlcgi], [htmlbase], [aggr_name], [backend_id]</td>
+        </tr>
+        <tr>
+            <td>map_url</td>
+            <td>inherited (<a href="nagvis_config_format_description.html">nagvis.ini.php</a>)</td>
+        <td>The default url to follow when a user left-clicks on an map object.
+          Available macros: [htmlcgi], [htmlbase], [map_name]</td>
+        </tr>
+
         <tr>
             <td>zoom</td>
             <td>100</td>
@@ -297,7 +351,7 @@
           <td>Unique identifier of the object on the current map. Each object
               on the map needs to have an object_id. The object_id is built of
               alphanumeric signs of any length. When no object_id is given NagVis
-              will generate one for the object. <font color="#ff0000">(New in 1.6)</font></td>
+              will generate one for the object.</td>
         </tr>
         <tr>
         <td> <b>host_name</b> </td><td> </td><td> Name of the host as defined in Nagios </td>
@@ -376,6 +430,13 @@
         <td> iconset </td><td> inherited (<a href="#global">global</a>) </td><td> Special iconset. Is inherited from global paragraph if not specified. </td>
         </tr>
         <tr>
+            <td>icon_size</td>
+            <td>inherited (<a href="nagvis_config_format_description.html">nagvis.ini.php</a>)</td>
+            <td>Scales the iconsets up or down while showing in the map. If left empty, the iconset images will be displayed
+                at their natural size. You can configure this option with either a single integer for giving width and height
+                at once, but you can also provide two comma separated integers to specify different values forr the width and height.
+        </tr>
+        <tr>
         <td> label_show </td><td> inherited (<a href="#global">global</a>) </td><td> Enable/Disable label for this object </td>
         </tr>
         <tr>
@@ -402,11 +463,6 @@
 
         <tr>
         <td> line_type </td><td>inherited (<a href="#global">global</a>)</td><td>Specifies the type of line when view_type=line. Valid values are:<br /> &quot;11&quot; for lines with one arrow at the end of a line.<br /> &quot;10&quot; for lines with two arrows pointing to each other in the middle of the line.<br /> &quot;12&quot; for plain lines without arrow.</td>
-        </tr>
-        <tr>
-        <td>line_arrow</td><td>inherited (<a href="#global">global</a>)</td>
-        <td>This defines the arrows at the end of the line. At the moment this
-        attribute is only being used for the lines between hosts on the automap. Possible values: forward, back, both, none.</td>
         </tr>
         <tr>
         <td>line_width</td><td>inherited (<a href="#global">global</a>)</td><td>This defines the width of the line in px when this object is being displayed as line.</td>
@@ -453,7 +509,7 @@
           <td>Unique identifier of the object on the current map. Each object
               on the map needs to have an object_id. The object_id is built of
               alphanumeric signs of any length. When no object_id is given NagVis
-              will generate one for the object. <font color="#ff0000">(New in 1.6)</font></td>
+              will generate one for the object.</td>
         </tr>
         <tr>
         <td> <b>host_name</b> </td><td> </td><td> Name of the host as defined in Nagios </td>
@@ -548,6 +604,13 @@
         <td> iconset </td><td> inherited (<a href="#global">global</a>) </td><td> Special iconset. Is inherited from global paragraph if not specified. </td>
         </tr>
         <tr>
+            <td>icon_size</td>
+            <td>inherited (<a href="nagvis_config_format_description.html">nagvis.ini.php</a>)</td>
+            <td>Scales the iconsets up or down while showing in the map. If left empty, the iconset images will be displayed
+                at their natural size. You can configure this option with either a single integer for giving width and height
+                at once, but you can also provide two comma separated integers to specify different values forr the width and height.
+        </tr>
+        <tr>
         <td> label_show </td><td> inherited (<a href="#global">global</a>) </td><td> Enable/Disable label for this object </td>
         </tr>
         <tr>
@@ -576,11 +639,6 @@
         <td> line_type </td><td>inherited (<a href="#global">global</a>)</td><td>Specifies the type of line when view_type=line. Valid values are:<br /> &quot;11&quot; for lines with one arrow at the end of a line.<br /> &quot;10&quot; for lines with two arrows pointing to each other in the middle of the line.<br /> &quot;12&quot; for plain lines without arrow.</td>
         </tr>
         <tr>
-        <td>line_arrow</td><td>inherited (<a href="#global">global</a>)</td>
-        <td>This defines the arrows at the end of the line. At the moment this
-        attribute is only being used for the lines between hosts on the automap. Possible values: forward, back, both, none.</td>
-        </tr>
-        <tr>
         <td>line_width</td><td>inherited (<a href="#global">global</a>)</td><td>This defines the width of the line in px when this object is being displayed as line.</td>
         </tr>
         <td>line_cut</td>
@@ -604,14 +662,24 @@
         </td>
         </tr>
         <tr>
+        <td>line_label_in</td>
+        <td>in</td>
+        <td>Specify which performance data name you want to use for the "inbound" weathermap line.</td>
+        </tr>
+        <tr>
+        <td>line_label_out</td>
+        <td>out</td>
+        <td>Specify which performance data name you want to use for the "outbound" weathermap line.</td>
+        </tr>
+        <tr>
         <td>line_label_y_offset</td>
         <td>2</td>
         <td>This option defines the offset of the labels to the line when rendering weathermap lines which show percentage
-        and absolute bandwidth labels. <font color="#ff0000">(New in 1.6)</font>
+        and absolute bandwidth labels.
         </td>
         </tr>
         <tr>
-        <td>line_weather_colors</td><td>inherited (<a href="#global">global</a>)</td><td>This defines the colours of weathermap colours in the different percentage levels. For example above 10% load it will be coloured #8c00ff. <font color="#ff0000">(New in 1.6)</font></td>
+        <td>line_weather_colors</td><td>inherited (<a href="#global">global</a>)</td><td>This defines the colours of weathermap colours in the different percentage levels. For example above 10% load it will be coloured #8c00ff.</td>
         </tr>
         <tr>
         <td> only_hard_states </td><td> inherited (<a href="#global">global</a>)</td><td> Sets whether soft states should be ignored. Default setting is 0. </td>
@@ -649,7 +717,7 @@
           <td>Unique identifier of the object on the current map. Each object
               on the map needs to have an object_id. The object_id is built of
               alphanumeric signs of any length. When no object_id is given NagVis
-              will generate one for the object. <font color="#ff0000">(New in 1.6)</font></td>
+              will generate one for the object.</td>
         </tr>
         <tr>
         <td> <b>hostgroup_name</b> </td><td> </td><td> Name of the hostgroup as defined in Nagios </td>
@@ -727,6 +795,13 @@
         <td> iconset </td><td> inherited (<a href="#global">global</a>) </td><td> Special iconset. Is inherited from global paragraph if not specified. </td>
         </tr>
         <tr>
+            <td>icon_size</td>
+            <td>inherited (<a href="nagvis_config_format_description.html">nagvis.ini.php</a>)</td>
+            <td>Scales the iconsets up or down while showing in the map. If left empty, the iconset images will be displayed
+                at their natural size. You can configure this option with either a single integer for giving width and height
+                at once, but you can also provide two comma separated integers to specify different values forr the width and height.
+        </tr>
+        <tr>
         <td> label_show </td><td> inherited (<a href="#global">global</a>) </td><td> Enable/Disable label for this object </td>
         </tr>
         <tr>
@@ -753,11 +828,6 @@
 
         <tr>
         <td> line_type </td><td>inherited (<a href="#global">global</a>)</td><td>Specifies the type of line when view_type=line. Valid values are:<br /> &quot;11&quot; for lines with one arrow at the end of a line.<br /> &quot;10&quot; for lines with two arrows pointing to each other in the middle of the line.<br /> &quot;12&quot; for plain lines without arrow.</td>
-        </tr>
-        <tr>
-        <td>line_arrow</td><td>inherited (<a href="#global">global</a>)</td>
-        <td>This defines the arrows at the end of the line. At the moment this
-        attribute is only being used for the lines between hosts on the automap. Possible values: forward, back, both, none.</td>
         </tr>
         <tr>
         <td>line_width</td><td>inherited (<a href="#global">global</a>)</td><td>This defines the width of the line in px when this object is being displayed as line.</td>
@@ -799,7 +869,7 @@
           <td>Unique identifier of the object on the current map. Each object
               on the map needs to have an object_id. The object_id is built of
               alphanumeric signs of any length. When no object_id is given NagVis
-              will generate one for the object. <font color="#ff0000">(New in 1.6)</font></td>
+              will generate one for the object.</td>
         </tr>
         <tr>
         <td> <b>servicegroup_name</b> </td><td> </td><td> Name of the servicegroup as defined in Nagios. </td>
@@ -877,6 +947,13 @@
         <td> iconset </td><td> inherited (<a href="#global">global</a>) </td><td> Special iconset. Is inherited from global paragraph if not specified. </td>
         </tr>
         <tr>
+            <td>icon_size</td>
+            <td>inherited (<a href="nagvis_config_format_description.html">nagvis.ini.php</a>)</td>
+            <td>Scales the iconsets up or down while showing in the map. If left empty, the iconset images will be displayed
+                at their natural size. You can configure this option with either a single integer for giving width and height
+                at once, but you can also provide two comma separated integers to specify different values forr the width and height.
+        </tr>
+        <tr>
         <td> label_show </td><td> inherited (<a href="#global">global</a>) </td><td> Enable/Disable label for this object </td>
         </tr>
         <tr>
@@ -903,11 +980,6 @@
 
         <tr>
         <td> line_type </td><td>inherited (<a href="#global">global</a>)</td><td>Specifies the type of line when view_type=line. Valid values are:<br /> &quot;11&quot; for lines with one arrow at the end of a line.<br /> &quot;10&quot; for lines with two arrows pointing to each other in the middle of the line.<br /> &quot;12&quot; for plain lines without arrow.</td>
-        </tr>
-        <tr>
-        <td>line_arrow</td><td>inherited (<a href="#global">global</a>)</td>
-        <td>This defines the arrows at the end of the line. At the moment this
-        attribute is only being used for the lines between hosts on the automap. Possible values: forward, back, both, none.</td>
         </tr>
         <tr>
         <td>line_width</td><td>inherited (<a href="#global">global</a>)</td><td>This defines the width of the line in px when this object is being displayed as line.</td>
@@ -949,7 +1021,7 @@
           <td>Unique identifier of the object on the current map. Each object
               on the map needs to have an object_id. The object_id is built of
               alphanumeric signs of any length. When no object_id is given NagVis
-              will generate one for the object. <font color="#ff0000">(New in 1.6)</font></td>
+              will generate one for the object.</td>
         </tr>
         <tr>
         <td> <b>map_name</b> </td><td> </td><td> Name of the NagVis map cfg file (without .cfg extension) </td>
@@ -1017,6 +1089,13 @@
         <td> iconset </td><td> inherited (<a href="#global">global</a>) </td><td> Special iconset. Is inherited from global paragraph if not specified. </td>
         </tr>
         <tr>
+            <td>icon_size</td>
+            <td>inherited (<a href="nagvis_config_format_description.html">nagvis.ini.php</a>)</td>
+            <td>Scales the iconsets up or down while showing in the map. If left empty, the iconset images will be displayed
+                at their natural size. You can configure this option with either a single integer for giving width and height
+                at once, but you can also provide two comma separated integers to specify different values forr the width and height.
+        </tr>
+        <tr>
         <td> label_show </td><td> inherited (<a href="#global">global</a>) </td><td> Enable/Disable label for this object </td>
         </tr>
         <tr>
@@ -1043,11 +1122,6 @@
 
         <tr>
         <td> line_type </td><td>inherited (<a href="#global">global</a>)</td><td>Specifies the type of line when view_type=line. Valid values are:<br /> &quot;11&quot; for lines with one arrow at the end of a line.<br /> &quot;10&quot; for lines with two arrows pointing to each other in the middle of the line.<br /> &quot;12&quot; for plain lines without arrow.</td>
-        </tr>
-        <tr>
-        <td>line_arrow</td><td>inherited (<a href="#global">global</a>)</td>
-        <td>This defines the arrows at the end of the line. At the moment this
-        attribute is only being used for the lines between hosts on the automap. Possible values: forward, back, both, none.</td>
         </tr>
         <tr>
         <td>line_width</td><td>inherited (<a href="#global">global</a>)</td><td>This defines the width of the line in px when this object is being displayed as line.</td>
@@ -1089,7 +1163,7 @@
           <td>Unique identifier of the object on the current map. Each object
               on the map needs to have an object_id. The object_id is built of
               alphanumeric signs of any length. When no object_id is given NagVis
-              will generate one for the object. <font color="#ff0000">(New in 1.6)</font></td>
+              will generate one for the object.</td>
         </tr>
         <tr>
         <td> <b>text</b> </td><td> </td><td> Your own text, HTML is possible. There are some macros:<br />
@@ -1147,7 +1221,7 @@
           <td>Unique identifier of the object on the current map. Each object
               on the map needs to have an object_id. The object_id is built of
               alphanumeric signs of any length. When no object_id is given NagVis
-              will generate one for the object. <font color="#ff0000">(New in 1.6)</font></td>
+              will generate one for the object.</td>
         </tr>
         <tr>
           <td><b>icon</b></td>
@@ -1210,7 +1284,7 @@
           <td>Unique identifier of the object on the current map. Each object
               on the map needs to have an object_id. The object_id is built of
               alphanumeric signs of any length. When no object_id is given NagVis
-              will generate one for the object. <font color="#ff0000">(New in 1.6)</font></td>
+              will generate one for the object.</td>
         </tr>
         <tr>
         <td><b>line_type</b></td><td></td><td>Specifies the type of line when view_type=line. Valid values are:<br /> &quot;11&quot; for lines with one arrow at the end of a line.<br /> &quot;10&quot; for lines with two arrows pointing to each other in the middle of the line.<br /> &quot;12&quot; for plain lines without arrow.</td>
@@ -1226,11 +1300,6 @@
               Take a look at the <a href="#coordinate">coordinate definition</a> for details.</td>
         </tr>
         
-        <tr>
-        <td>line_arrow</td><td>inherited (<a href="#global">global</a>)</td>
-        <td>This defines the arrows at the end of the line. At the moment this
-        attribute is only being used for the lines between hosts on the automap. Possible values: forward, back, both, none.</td>
-        </tr>
         <tr>
         <td>line_width</td><td>3</td><td>The width of the line in pixels.</td>
         </tr>
@@ -1290,7 +1359,7 @@
         </table>
 
 
-        <a name="container"></a><h3>Container (<font color="#ff0000">New in 1.7.1</font>)</h3>
+        <a name="container"></a><h3>Container</h3>
         <p>Example with major options:</p>
 <pre>define container {
   url="std_hello.php"
@@ -1374,7 +1443,7 @@
         </tr>
         </table>
 
-        <a name="container"></a><h4>Script: std_lq.php (<font color="#ff0000">New in 1.7.1</font>)</h4>
+        <a name="container"></a><h4>Script: std_lq.php</h4>
         <p>This script is delivered with NagVis. It can be used to list data fetched via livestatus on
         your maps to e.g. display lists of items or just raw numbers.</p>
 
@@ -1518,6 +1587,13 @@
         <td> iconset </td><td> inherited (<a href="#global">global</a>) </td><td> Special iconset. Is inherited from global paragraph if not specified. </td>
         </tr>
         <tr>
+            <td>icon_size</td>
+            <td>inherited (<a href="nagvis_config_format_description.html">nagvis.ini.php</a>)</td>
+            <td>Scales the iconsets up or down while showing in the map. If left empty, the iconset images will be displayed
+                at their natural size. You can configure this option with either a single integer for giving width and height
+                at once, but you can also provide two comma separated integers to specify different values forr the width and height.
+        </tr>
+        <tr>
         <td> label_show </td><td> inherited (<a href="#global">global</a>) </td><td> Enable/Disable label for this object </td>
         </tr>
         <tr>
@@ -1544,11 +1620,6 @@
 
         <tr>
         <td> line_type </td><td>inherited (<a href="#global">global</a>)</td><td>Specifies the type of line when view_type=line. Valid values are:<br /> &quot;11&quot; for lines with one arrow at the end of a line.<br /> &quot;10&quot; for lines with two arrows pointing to each other in the middle of the line.<br /> &quot;12&quot; for plain lines without arrow.</td>
-        </tr>
-        <tr>
-        <td>line_arrow</td><td>inherited (<a href="#global">global</a>)</td>
-        <td>This defines the arrows at the end of the line. At the moment this
-        attribute is only being used for the lines between hosts on the automap. Possible values: forward, back, both, none.</td>
         </tr>
         <tr>
         <td>line_width</td><td>inherited (<a href="#global">global</a>)</td><td>This defines the width of the line in px when this object is being displayed as line.</td>
@@ -1665,6 +1736,13 @@
         <td> iconset </td><td> inherited (<a href="#global">global</a>) </td><td> Special iconset. Is inherited from global paragraph if not specified. </td>
         </tr>
         <tr>
+            <td>icon_size</td>
+            <td>inherited (<a href="nagvis_config_format_description.html">nagvis.ini.php</a>)</td>
+            <td>Scales the iconsets up or down while showing in the map. If left empty, the iconset images will be displayed
+                at their natural size. You can configure this option with either a single integer for giving width and height
+                at once, but you can also provide two comma separated integers to specify different values forr the width and height.
+        </tr>
+        <tr>
         <td> label_show </td><td> inherited (<a href="#global">global</a>) </td><td> Enable/Disable label for this object </td>
         </tr>
         <tr>
@@ -1691,11 +1769,6 @@
 
         <tr>
         <td> line_type </td><td>inherited (<a href="#global">global</a>)</td><td>Specifies the type of line when view_type=line. Valid values are:<br /> &quot;11&quot; for lines with one arrow at the end of a line.<br /> &quot;10&quot; for lines with two arrows pointing to each other in the middle of the line.<br /> &quot;12&quot; for plain lines without arrow.</td>
-        </tr>
-        <tr>
-        <td>line_arrow</td><td>inherited (<a href="#global">global</a>)</td>
-        <td>This defines the arrows at the end of the line. At the moment this
-        attribute is only being used for the lines between hosts on the automap. Possible values: forward, back, both, none.</td>
         </tr>
         <tr>
         <td>line_width</td><td>inherited (<a href="#global">global</a>)</td><td>This defines the width of the line in px when this object is being displayed as line.</td>
@@ -1752,11 +1825,17 @@
     <p>When lines have one part (e.g. <i>---&gt;</i>) there must be two coords set.
         When using lines with two (e.g. <i>---&gt;&lt;---</i>) parts it is possible to set two coordinates for
     direct lines or three coordinates to reposition the middle of the line to a custom place.</p>
-
+    <h3>Relative coordinates</h3>
         <p>Since NagVis 1.6 it is possible to position objects depending on other objects. A relationship between
         two objects is defined from the &quot;childs&quot; view. This means the configuration needs to be done in
         the object which belongs to another object.<br />
         To define a relationship the coordinate is not given as integer anymore. Instead of the px offset the <i>object_id</i> of the parent object is used to define a relative position.</p>
+        Examples:
+        <ul>
+            <li><code>41790e%+30</code> = coordinate of object 41790e plus 30 pixels</li>
+            <li><code>41790e%-199</code> = coordinate of object 41790e minus 199 pixels</li>
+            <li><code>41790e%+0</code> = coordinate same as of object 41790e</li>
+        </ul>
         <p>We adapt the examples above and give the start of the line a relative position to the host object:</p>
     <pre>define host {
  object_id=41790e
@@ -1771,8 +1850,8 @@ define service {
  service_description=Interface eth0
  view_type=line
  line_type=10
- x=41790e,200
- y=41790e,200
+ x=41790e%+0,200
+ y=41790e%+0,200
 }</pre>
     <p>With the configuration above the beginning of the line is attached to the host object and moved every time
   the host object is moved.</p>

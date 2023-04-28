@@ -3,7 +3,7 @@
  *
  * CoreAuthHandler.php - Handler for authentication modules
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -29,7 +29,7 @@
  * module handles the information gathered from the webservers vars or the
  * frontend.
  *
- * @author Lars Michelsen <lars@vertical-visions.de>
+ * @author Lars Michelsen <lm@larsmichelsen.com>
  */
 class CoreAuthHandler {
     private $SESS;

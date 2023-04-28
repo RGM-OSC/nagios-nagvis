@@ -3,7 +3,7 @@
  *
  * NagVisMapView.php - Class for parsing the NagVis maps in nagvis-js frontend
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -23,7 +23,7 @@
  *****************************************************************************/
 
 /**
- * @author	Lars Michelsen <lars@vertical-visions.de>
+ * @author	Lars Michelsen <lm@larsmichelsen.com>
  */
 class NagVisMapView {
     private $MAPCFG    = null;
@@ -41,7 +41,7 @@ class NagVisMapView {
      * Set the search value if the user searches for an object
      *
      * @param   String    Search string
-     * @author  Lars Michelsen <lars@vertical-visions.de>
+     * @author  Lars Michelsen <lm@larsmichelsen.com>
      */
     public function setSearch($s) {
         $this->search = $s;
@@ -51,7 +51,7 @@ class NagVisMapView {
      * Set the rotation properties if the user wants a rotation
      *
      * @param   Array
-     * @author  Lars Michelsen <lars@vertical-visions.de>
+     * @author  Lars Michelsen <lm@larsmichelsen.com>
      */
     public function setRotation($a) {
         $this->aRotation = $a;
@@ -72,17 +72,17 @@ class NagVisMapView {
      * Parses the map and the objects for the nagvis-js frontend
      *
      * @return	String 	String with JS Code
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function parse() {
-        global $_MAINCFG;
+        global $_MAINCFG, $CORE;
         // Initialize template system
         $TMPL    = new FrontendTemplateSystem();
         $TMPLSYS = $TMPL->getTmplSys();
         $USERCFG = new CoreUserCfg();
 
         $this->MAPCFG = new GlobalMapCfg($this->name);
-        $this->MAPCFG->readMapConfig(ONLY_GLOBAL);
+        $this->MAPCFG->readMapConfig(ONLY_GLOBAL, true, true, true);
 
         $aData = Array(
             'generalProperties'  => $_MAINCFG->parseGeneralProperties(),
@@ -90,6 +90,7 @@ class NagVisMapView {
             'rotationProperties' => json_encode($this->aRotation),
             'viewProperties'     => $this->parseViewProperties(),
             'stateProperties'    => json_encode($_MAINCFG->getStateWeightJS()),
+            'pageProperties'     => json_encode($this->MAPCFG->getMapProperties()),
             'userProperties'     => $USERCFG->doGetAsJson(),
             'mapName'            => $this->name,
             'zoomFill'           => $this->MAPCFG->getValue(0, 'zoom') == 'fill',
@@ -97,11 +98,7 @@ class NagVisMapView {
                 'maincfg'   => $_MAINCFG->getConfigFileAge(),
                 $this->name => $this->MAPCFG->getFileModificationTime(),
             )),
-            'locales'            => json_encode(Array(
-                // FIXME: Duplicated definitions in NagVisMapView.php and NagVisOverviewView.php
-                'more items...' => l('more items...'),
-                'Create Object' => l('Create Object'),
-            )),
+            'locales'            => json_encode($CORE->getGeneralJSLocales()),
         );
 
         // Build page based on the template file and the data array
@@ -113,7 +110,7 @@ class NagVisMapView {
      * defined values which maybe given by url or session
      *
      * @return  String  JSON array
-     * @author  Lars Michelsen <lars@vertical-visions.de>
+     * @author  Lars Michelsen <lm@larsmichelsen.com>
      */
     private function parseViewProperties() {
         global $AUTHORISATION;
@@ -140,7 +137,7 @@ class NagVisMapView {
             $arr['hover_menu'] = $userParams['hover_menu'];
         if(isset($userParams['context_menu']))
             $arr['context_menu'] = $userParams['context_menu'];
-        
+
         // This sets the user specific parameters
         $arr['user_params'] = $this->MAPCFG->getSourceParams(true, true);
         // This sets the final source parameters

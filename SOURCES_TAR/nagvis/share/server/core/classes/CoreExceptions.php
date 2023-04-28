@@ -3,7 +3,7 @@
  *
  * CoreExceptions.php - Collection of exceptions in NagVis
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -23,7 +23,7 @@
  *****************************************************************************/
 
 /**
- * @author	Lars Michelsen <lars@vertical-visions.de>
+ * @author	Lars Michelsen <lm@larsmichelsen.com>
  */
 
 class NagVisException extends Exception {
@@ -47,6 +47,10 @@ class NagVisException extends Exception {
 
     function __toString() {
         return json_encode($this->e);
+    }
+
+    function message() {
+        return $this->e['message'];
     }
 }
 
@@ -88,14 +92,27 @@ class FieldInputError extends NagVisException {
         $this->field = $field;
         $this->msg   = $msg;
     }
+
+    function message() {
+        return $this->msg;
+    }
 }
 
 // This exception is used to handle PHP errors
 class NagVisErrorException extends ErrorException {
     function __toString() {
-        return "Error: (".$this->getCode().") ".$this->getMessage()
-             . " (".$this->getFile().":".$this->getLine().")<br /><br />\n"
-             . "<code>".str_replace("\n", "<br />\n", $this->getTraceAsString())."</code>";
+        $msg = "Error: (".$this->getCode().") ".$this->getMessage()
+             . "<div class=\"details\">"
+             . "URL: ".$_SERVER['REQUEST_URI']."<br>\n"
+             . "File: ".$this->getFile()."<br>\n"
+             . "Line: ".$this->getLine()."<br>\n"
+             . "<code>".str_replace("\n", "<br>\n", $this->getTraceAsString())."</code>";
 
+        if (ob_get_level() >= 1) {
+            $buffer = ob_get_contents();
+            if ($buffer)
+                $msg .= 'Output: <pre>'.htmlentities($buffer, ENT_COMPAT, 'UTF-8').'</pre>';
+        }
+        return $msg;
     }
 }

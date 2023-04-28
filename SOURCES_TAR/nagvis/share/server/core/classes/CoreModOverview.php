@@ -3,7 +3,7 @@
  *
  * CoreModOverview.php - Core Overview module to handle ajax requests
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -23,7 +23,7 @@
  ******************************************************************************/
 
 /**
- * @author Lars Michelsen <lars@vertical-visions.de>
+ * @author Lars Michelsen <lm@larsmichelsen.com>
  */
 class CoreModOverview extends CoreModule {
     private $htmlBase;
@@ -33,7 +33,6 @@ class CoreModOverview extends CoreModule {
         $this->sName = 'Overview';
 
         $this->aActions = Array(
-            'getOverviewProperties' => 'view',
             'getOverviewMaps'       => 'view',
             'getOverviewRotations'  => 'view',
             'getObjectStates'       => 'view',
@@ -45,9 +44,6 @@ class CoreModOverview extends CoreModule {
 
         if($this->offersAction($this->sAction)) {
             switch($this->sAction) {
-                case 'getOverviewProperties':
-                    $sReturn = $this->parseIndexPropertiesJson();
-                break;
                 case 'getOverviewRotations':
                     $sReturn = $this->parseRotationsJson();
                 break;
@@ -56,7 +52,7 @@ class CoreModOverview extends CoreModule {
                         'i' => MATCH_STRING_NO_SPACE,
                         'f' => MATCH_STRING_NO_SPACE_EMPTY,
                     );
-                    $aVals = $this->getCustomOptions($aOpts);
+                    $aVals = $this->getCustomOptions($aOpts, array(), true);
 
                     // Is this request asked to check file ages?
                     if(isset($aVals['f']) && isset($aVals['f'][0])) {
@@ -107,14 +103,10 @@ class CoreModOverview extends CoreModule {
         if($MAPCFG->getValue(0, 'show_in_lists') != 1)
             return null;
 
-        $objConf = $MAPCFG->getTypeDefaults('global');
-
         $MAP = new NagVisMap($MAPCFG, GET_STATE, !IS_VIEW);
 
-        // Apply default configuration to object
-        $objConf = array_merge($objConf, $this->getMapDefaultOpts($mapName, $MAPCFG->getAlias()));
-
-        $MAP->MAPOBJ->setConfiguration($objConf);
+        // Apply overview related configuration to object
+        $MAP->MAPOBJ->setConfiguration($this->getMapDefaultOpts($mapName, $MAPCFG->getAlias()));
 
         if($MAP->MAPOBJ->checkMaintenance(0)) {
             $map['overview_url']    = $this->htmlBase.'/index.php?mod=Map&act=view&show='.$mapName;
@@ -141,7 +133,7 @@ class CoreModOverview extends CoreModule {
      * for the listed objects.
      *
      * @return	String  Json Code
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      * FIXME: More cleanups, compacting and extraction of single parts
      */
     public function parseMapsJson($what = COMPLETE, $objects = Array()) {
@@ -195,12 +187,15 @@ class CoreModOverview extends CoreModule {
           'type'              => 'map',
           'map_name'          => $name,
           'object_id'         => 'map-'.$name,
-          // Enable the hover menu in all cases - maybe make it configurable
           'hover_menu'        => 1,
           'hover_childs_show' => 1,
           'hover_template'    => 'default',
-          // Enforce std_medium iconset - don't use map default iconset
-          'iconset'           => 'std_medium',
+          'context_menu'      => 1,
+          'context_template'  => 'default',
+          'label_show'        => 0,
+          // Enforce std_big iconset - don't use map default iconset
+          'iconset'           => 'std_big',
+          'icon_size'         => array(22),
           'alias'             => $alias
         );
     }
@@ -211,11 +206,11 @@ class CoreModOverview extends CoreModule {
         unset($map['map_name']);
         $map['state']           = 'ERROR';
         $map['summary_state']   = 'ERROR';
-        $map['icon']            = 'std_medium_error.png';
+        $map['icon']            = 'std_big_error.png';
         $map['members']         = Array();
         $map['num_members']     = 0;
         $map['overview_class']  = 'error';
-        $map['overview_url']    = 'javascript:alert(\''.$msg.'\');';
+        $map['overview_url']    = $this->htmlBase.'/index.php?mod=Map&act=view&show='.$map['name'];
         $map['summary_output']  = l('Map Error: [ERR]', Array('ERR' => $msg));
         return $map;
     }
@@ -248,7 +243,7 @@ class CoreModOverview extends CoreModule {
      * Parses the rotations for the overview page
      *
      * @return	String  Json Code
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function parseRotationsJson() {
         global $AUTHORISATION, $CORE;
@@ -276,40 +271,9 @@ class CoreModOverview extends CoreModule {
     }
 
     /**
-     * Parses the overview page options in json format
-     *
-     * @return	String 	String with JSON Code
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
-     */
-    public function parseIndexPropertiesJson() {
-        $arr = Array();
-
-        $arr['cellsperrow']        = (int) cfg('index', 'cellsperrow');
-        $arr['showmaps']           = (int) cfg('index', 'showmaps');
-        $arr['showgeomap']         = (int) cfg('index', 'showgeomap');
-        $arr['showmapthumbs']      = (int) cfg('index', 'showmapthumbs');
-        $arr['showrotations']      = (int) cfg('index', 'showrotations');
-
-        $arr['page_title']         = cfg('internal', 'title');
-        $arr['favicon_image']      = cfg('paths', 'htmlimages').'internal/favicon.png';
-        $arr['background_color']   = cfg('index','backgroundcolor');
-
-        $arr['lang_mapIndex']      = l('mapIndex');
-        $arr['lang_rotationPools'] = l('rotationPools');
-
-        $arr['event_log']          = (int) cfg('defaults', 'eventlog');
-        $arr['event_log_level']    = cfg('defaults', 'eventloglevel');
-        $arr['event_log_events']   = (int) cfg('defaults', 'eventlogevents');
-        $arr['event_log_height']   = (int) cfg('defaults', 'eventlogheight');
-        $arr['event_log_hidden']   = (int) cfg('defaults', 'eventloghidden');
-
-        return json_encode($arr);
-    }
-
-    /**
      * Returns the filetype
      *
-     * @author	Lars Michelsen <lars@vertical-visions.de>
+     * @author	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function getFileType($imgPath) {
         $imgSize = getimagesize($imgPath);
@@ -334,7 +298,7 @@ class CoreModOverview extends CoreModule {
     /**
      * Creates thumbnail images for the index map
      *
-     * @author	Lars Michelsen <lars@vertical-visions.de>
+     * @author	Lars Michelsen <lm@larsmichelsen.com>
      */
     private function createThumbnail($imgPath, $thumbPath) {
         global $CORE;

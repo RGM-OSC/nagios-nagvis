@@ -3,7 +3,7 @@
  *
  * FrontendModMap.php - Module for handling the maps in NagVis
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -23,7 +23,7 @@
  *****************************************************************************/
 
 /**
- * @author	Lars Michelsen <lars@vertical-visions.de>
+ * @author	Lars Michelsen <lm@larsmichelsen.com>
  */
 class FrontendModMap extends FrontendModule {
     private $name = '';
@@ -107,7 +107,7 @@ class FrontendModMap extends FrontendModule {
         // Need to parse the header menu by config or url value?
         if(isset($opts['header_menu']) && $opts['header_menu']) {
             // Parse the header menu
-            $HEADER = new NagVisHeaderMenu($this->UHANDLER, $MAPCFG->getValue(0 ,'header_template'), $MAPCFG);
+            $HEADER = new NagVisHeaderMenu($MAPCFG->getValue(0 ,'header_template'), $MAPCFG);
 
             // Put rotation information to header menu
             if($this->rotation != '') {

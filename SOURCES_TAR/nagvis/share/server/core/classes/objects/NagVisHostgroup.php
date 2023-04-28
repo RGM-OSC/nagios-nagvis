@@ -4,7 +4,7 @@
  * NagVisHostgroup.php - Class of a Hostgroup in NagVis with all necessary
  *                  information which belong to the object handling in NagVis
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -142,8 +142,8 @@ class NagVisHostgroup extends NagVisStatefulObject {
         // Fallback for hostgroups without members
         if($iSumCount == 0) {
             $this->sum[OUTPUT] = l('The hostgroup "[GROUP]" has no members or does not exist (Backend: [BACKEND]).',
-                                                                                        Array('GROUP' => $this->getName(),
-                                                                                              'BACKEND' => $this->backend_id));
+                                     Array('GROUP' => $this->getName(),
+                                           'BACKEND' => implode(", ", $this->backend_id)));
         } else {
             // FIXME: Recode mergeSummaryOutput method
             $this->mergeSummaryOutput($arrHostStates, l('hosts'), false);

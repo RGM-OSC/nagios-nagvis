@@ -1692,7 +1692,7 @@ class Dwoo_Compiler implements Dwoo_ICompiler
 					$defValue = false;
 				} elseif ($defValue === 'true') {
 					$defValue = true;
-				} elseif (preg_match('#^([\'"]).*?\1$#', $defValue)) {
+				} elseif ($hasDefault && preg_match('#^([\'"]).*?\1$#', $defValue)) {
 					$defValue = substr($defValue, 1, -1);
 				}
 				$map[] = array($param, $hasDefault, $defValue);
@@ -2434,7 +2434,7 @@ class Dwoo_Compiler implements Dwoo_ICompiler
 		}
 
 		$breaker = false;
-		while (list($k,$char) = each($breakChars)) {
+		foreach ($breakChars as $k => $char) {
 			$test = strpos($substr, $char);
 			if ($test !== false && $test < $end) {
 				$end = $test;
@@ -2939,7 +2939,7 @@ class Dwoo_Compiler implements Dwoo_ICompiler
 		}
 
 		// loops over the param map and assigns values from the template or default value for unset optional params
-		while (list($k,$v) = each($map)) {
+		foreach ($map as $k => $v) {
 			if ($v[0] === '*') {
 				// "rest" array parameter, fill every remaining params in it and then break
 				if (count($ps) === 0) {
@@ -3006,17 +3006,33 @@ class Dwoo_Compiler implements Dwoo_ICompiler
 		}
 
 		$out = array();
-		foreach ($ref->getParameters() as $param) {
-			if (($class = $param->getClass()) !== null && $class->name === 'Dwoo') {
-				continue;
+
+		if (PHP_VERSION_ID < 70100) {
+			foreach ($ref->getParameters() as $param) {
+				if (($class = $param->getClass()) !== null && $class->name === 'Dwoo') {
+					continue;
+				}
+				if (($class = $param->getClass()) !== null && $class->name === 'Dwoo_Compiler') {
+					continue;
+				}
+				if ($param->getName() === 'rest' && $param->isArray() === true) {
+					$out[] = array('*', $param->isOptional(), null);
+				}
+				$out[] = array($param->getName(), $param->isOptional(), $param->isOptional() ? $param->getDefaultValue() : null);
 			}
-			if (($class = $param->getClass()) !== null && $class->name === 'Dwoo_Compiler') {
-				continue;
+		} else {
+			foreach ($ref->getParameters() as $param) {
+				if ($param->getType() && !$param->getType()->isBuiltin() && $param->getType()->getName() === 'Dwoo') {
+					continue;
+				}
+				if ($param->getType() && !$param->getType()->isBuiltin() && $param->getType()->getName() === 'Dwoo_Compiler') {
+					continue;
+				}
+				if ($param->getName() === 'rest' && $param->getType() && $param->getType()->getName() === 'array') {
+					$out[] = array('*', $param->isOptional(), null);
+				}
+				$out[] = array($param->getName(), $param->isOptional(), $param->isOptional() ? $param->getDefaultValue() : null);
 			}
-			if ($param->getName() === 'rest' && $param->isArray() === true) {
-				$out[] = array('*', $param->isOptional(), null);
-			}
-			$out[] = array($param->getName(), $param->isOptional(), $param->isOptional() ? $param->getDefaultValue() : null);
 		}
 
 		return $out;

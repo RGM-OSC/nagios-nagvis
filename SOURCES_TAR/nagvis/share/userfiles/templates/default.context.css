@@ -30,8 +30,8 @@ div.context {
   width: 205px;
   background: #fbfbfb;
 
-  font-size: 11px;
   border: 1px solid #e5e5e5;
+  z-index: 1000;
 }
 
 div.context ul {

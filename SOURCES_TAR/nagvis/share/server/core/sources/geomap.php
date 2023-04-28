@@ -6,6 +6,8 @@ class GeomapError extends MapSourceError {}
 // CSV source file handling
 //
 
+const ACCEPTED_GEOMAP_SERVER_URL_SCHEMES = ["http", "https"];
+
 function geomap_source_file($p) {
     return cfg('paths', 'geomap') . '/' . $p['source_file'] . '.csv';
 }
@@ -20,11 +22,18 @@ function geomap_read_csv($p) {
     if(!file_exists($f))
         throw new GeomapError(l('Location source file "[F]" does not exist.', Array('F' => $f)));
 
+    $i = 0;
     foreach(file($f) AS $line) {
+        $i++;
+
         // skip lines beginning with any of the usual comment characters
         if(preg_match('/^[;#\/]/',$line))
             continue;
         $parts = explode(';', $line);
+        if (count($parts) < 4)
+            throw new GeomapError(l('Invalid source file line found: Line "[NR]" in "[F]" '
+                                   .'has less than 4 fields', Array('NR' => $i, 'F' => $f)));
+
         $locations[] = array(
             'name'  => $parts[0],
             'alias' => $parts[1],
@@ -113,6 +122,7 @@ function geomap_get_contents($url) {
             'http' => array(
                 'timeout'    => cfg('global', 'http_timeout'),
                 'user_agent' => 'NagVis '.CONST_VERSION.' geomap',
+                'max_redirects' => 0,
             )
         );
 
@@ -215,9 +225,33 @@ $configVars = array(
     ),
 );
 
+// Assign config variables to specific object types
+global $configVarMap;
+$configVarMap = array(
+    'global' => array(
+        'geomap' => array(
+            'geomap_type'   => null,
+            'geomap_zoom'   => null,
+            'source_type'   => null,
+            'source_file'   => null,
+            'geomap_border' => null,
+        ),
+    ),
+);
+
 // Global config vars not to show for geomaps
 $hiddenConfigVars = array(
     'map_image',
+);
+
+// Alter some global vars with automap specific things
+$updateConfigVars = array(
+    'width' => array(
+        'default' => 1000,
+    ),
+    'height' => array(
+        'default' => 600,
+    ),
 );
 
 function geomap_files($params) {
@@ -237,6 +271,33 @@ function geomap_files($params) {
     );
 }
 
+function validate_geomap_server_base_url($url) {
+    # If the given url contains non standard URL characters, throw an error
+    $sanitized_url = filter_var($url, FILTER_SANITIZE_URL);
+    if ($sanitized_url !== $url) {
+        throw new GeomapError(l('Geomap server URL contains not allowed characters. Url: "[U]"',
+            array('U' => $url)));
+    }
+
+    $url_scheme = parse_url($url, PHP_URL_SCHEME);
+    if (!$url_scheme || !in_array(strtolower($url_scheme), ACCEPTED_GEOMAP_SERVER_URL_SCHEMES)) {
+        throw new GeomapError(l('Invalid scheme in Geomap server URL: "[U]"',
+            array('U' => $url)));
+    }
+
+    $url_query = parse_url($url, PHP_URL_QUERY);
+    if (!empty($url_query)) {
+        throw new GeomapError(l('Geomap server cannot contain query parameters. URL: "[U]"',
+            array('U' => $url)));
+    }
+
+    $url_fragment = parse_url($url, PHP_URL_FRAGMENT);
+    if (!empty($url_fragment)) {
+        throw new GeomapError(l('Geomap server cannot contain anchors. URL: "[U]"',
+            array('U' => $url)));
+    }
+}
+
 function process_geomap($MAPCFG, $map_name, &$map_config) {
     $params = $MAPCFG->getSourceParams();
     list($image_name, $image_path, $data_path) = geomap_files($params);
@@ -253,7 +314,7 @@ function process_geomap($MAPCFG, $map_name, &$map_config) {
 
     $iconset = $params['iconset'];
     list($icon_w, $icon_h) = iconset_size($iconset);
-    
+
     // Adapt the global section
     $map_config[0] = $saved_config[0];
     $map_config[0]['map_image'] = $image_name.'?'.time().'.png';
@@ -319,8 +380,13 @@ function process_geomap($MAPCFG, $map_name, &$map_config) {
     //echo $min_lat . ' - ' . $max_lat. ' - '. $mid_lat.'\n';
     //echo $min_long . ' - ' . $max_long. ' - ' . $mid_long;
 
+    if (!$params['width'] || !$params['height'])
+        throw new GeomapError(l('Missing mandatory "width" and "height" parameters."'));
+
     // Using this API: http://pafciu17.dev.openstreetmap.org/
-    $url = cfg('global', 'geomap_server')
+    $geomap_server_base_url = cfg('global', 'geomap_server');
+    validate_geomap_server_base_url($geomap_server_base_url);
+    $url = $geomap_server_base_url
           .'?module=map'
           .'&width='.$params['width'].'&height='.$params['height']
           .'&type='.$params['geomap_type'];
@@ -395,8 +461,8 @@ function process_geomap($MAPCFG, $map_name, &$map_config) {
         // Calculate the lat (y) coords
         $obj['y'] = round((ProjectF($img_top) - ProjectF($obj['lat'])) * $lat_mult - ($icon_h / 2));
         if($obj['y'] < 0)
-            $obj['y'] = 0;		
-        
+            $obj['y'] = 0;
+
         // Calculate the long (x) coords
         $obj['x'] = round(($long_para * ($obj['long'] - $img_left)) - ($icon_w / 2));
         if($obj['x'] < 0)
@@ -405,6 +471,8 @@ function process_geomap($MAPCFG, $map_name, &$map_config) {
         unset($obj['lat']);
         unset($obj['long']);
     }
+
+    return true; // allow caching
 }
 
 /**

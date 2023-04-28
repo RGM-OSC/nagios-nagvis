@@ -3,7 +3,7 @@
  *
  * ViewManageBackgrounds.php - View to render manage backgrounds page
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -22,43 +22,137 @@
  *
  *****************************************************************************/
 
-/**
- * @author	Lars Michelsen <lars@vertical-visions.de>
- */
 class ViewManageBackgrounds {
-    /**
-     * Parses the information in html format
-     *
-     * @return	String 	String with Html Code
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
-     */
-    public function parse() {
+    private $error = null;
+
+    private function uploadForm() {
         global $CORE;
-        // Initialize template system
-        $TMPL = New CoreTemplateSystem($CORE);
-        $TMPLSYS = $TMPL->getTmplSys();
+        echo '<h2>'.l('Upload Background Image').'</h2>';
 
-        $aData = Array(
-            'htmlBase'             => cfg('paths', 'htmlbase'),
-            'htmlImages'           => cfg('paths', 'htmlimages'),
-            'langCreateBackground' => l('createBackground'),
-            'langBackgroundName'   => l('backgroundName'),
-            'langBackgroundColor'  => l('backgroundColor'),
-            'langColorSelect'      => l('Color select'), 
-            'langBackgroundWidth'  => l('backgroundWidth'),
-            'langBackgroundHeight' => l('backgroundHeight'),
-            'langCreate'           => l('create'),
-            'langUploadBackground' => l('uploadBackground'),
-            'langChooseImage'      => l('chooseImage'),
-            'langUpload'           => l('upload'),
-            'langDeleteBackground' => l('deleteBackground'),
-            'langDelete'           => l('delete'),
-            'images'               => $CORE->getAvailableBackgroundImages(),
-            'lang'                 => $CORE->getJsLang(),
-        );
+        if (is_action() && post('mode') == 'upload') {
+            try {
+                if (!isset($_FILES['image']))
+                    throw new FieldInputError('image', l('You need to select an image to import.'));
 
-        // Build page based on the template file and the data array
-        return $TMPLSYS->get($TMPL->getTmplFile(cfg('defaults', 'view_template'), 'wuiManageBackgrounds'), $aData);
+                $file = $_FILES['image'];
+                if (!is_uploaded_file($file['tmp_name']))
+                    throw new FieldInputError('image', l('The file could not be uploaded (Error: [ERROR]).',
+                      Array('ERROR' => $file['error'].': '.$CORE->getUploadErrorMsg($file['error']))));
+
+                $file_name = $file['name'];
+                $file_path = path('sys', '', 'backgrounds').$file_name;
+
+                if (!preg_match(MATCH_PNG_GIF_JPG_FILE, $file_name))
+                    throw new FieldInputError('image', l('The uploaded file is no image (png,jpg,gif) '
+                                                        .'file or contains unwanted chars.'));
+
+                $data = getimagesize($file['tmp_name']);
+                if (!in_array($data[2], array(IMAGETYPE_GIF , IMAGETYPE_JPEG ,IMAGETYPE_PNG)))
+                    throw new FieldInputError('image', l('The uploaded file is not an image '
+                                                        .'(png, jpg and gif are allowed).'));
+
+                move_uploaded_file($file['tmp_name'], $file_path);
+                $CORE->setPerms($file_path);
+
+                success(l('The background has been uploaded.'));
+                //reload(null, 1);
+            } catch (FieldInputError $e) {
+                form_error($e->field, $e->msg);
+            } catch (Exception $e) {
+                if (isset($e->msg))
+                    form_error(null, $e->msg);
+                else
+                    throw $e;
+            }
+        }
+        echo $this->error;
+
+        js_form_start('upload_background');
+        hidden('mode', 'upload');
+        echo '<input type="hidden" id="MAX_FILE_SIZE" name="MAX_FILE_SIZE" value="3000000" />';
+
+        echo '<table class="mytable">';
+        echo '<tr><td class="tdlabel">'.l('Choose an Image').'</td>';
+        echo '<td class="tdfield">';
+        upload('image');
+        echo '</td></tr>';
+        echo '</table>';
+
+        submit(l('Upload'));
+        form_end();
+    }
+
+    private function deleteForm() {
+        global $CORE;
+        echo '<h2>'.l('Delete Background').'</h2>';
+
+        if (is_action() && post('mode') == 'delete') {
+            try {
+                $name = post('name');
+                if (!$name)
+                    throw new FieldInputError('name', l('Please choose a background'));
+
+                if (!in_array($name, $CORE->getAvailableBackgroundImages()))
+                    throw new FieldInputError('name', l('The background does not exist.'));
+
+                // Check whether or not the backgroun is in use
+                $using = Array();
+                foreach ($CORE->getAvailableMaps() AS $map) {
+                    $MAPCFG = new GlobalMapCfg($map);
+                    try {
+                        $MAPCFG->readMapConfig(ONLY_GLOBAL);
+                    } catch (Exception $e) {
+                        continue; // don't fail on broken map configs
+                    }
+
+                    $bg = $MAPCFG->getValue(0, 'map_image');
+                    if (isset($bg) && $bg == $name)
+                        $using[] = $MAPCFG->getName();
+                }
+                if ($using)
+                    throw new FieldInputError('name', l('Unable to delete this background, because it is '
+                                                       .'currently used by these maps: [M].',
+                                                            array('M' => implode(',', $using))));
+
+                $BACKGROUND = new GlobalBackground($name);
+                $BACKGROUND->deleteImage();
+
+                success(l('The background has been deleted.'));
+                //reload(null, 1);
+            } catch (FieldInputError $e) {
+                form_error($e->field, $e->msg);
+            } catch (Exception $e) {
+                if (isset($e->msg))
+                    form_error(null, $e->msg);
+                else
+                    throw $e;
+            }
+        }
+        echo $this->error;
+
+        js_form_start('delete');
+        hidden('mode', 'delete');
+
+        echo '<table class="mytable">';
+        echo '<tr><td class="tdlabel">'.l('Background').'</td>';
+        echo '<td class="tdfield">';
+        $images = array('' => l('Choose a background'));
+        foreach ($CORE->getAvailableBackgroundImages() AS $name)
+            $images[$name] = $name;
+        select('name', $images);
+        echo '</td></tr>';
+
+        echo '</table>';
+
+        submit(l('Delete'));
+        form_end();
+    }
+
+    public function parse() {
+        ob_start();
+        $this->uploadForm();
+        $this->deleteForm();
+        return ob_get_clean();
     }
 }
 ?>

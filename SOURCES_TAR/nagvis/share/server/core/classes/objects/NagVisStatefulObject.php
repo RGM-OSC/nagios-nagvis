@@ -5,7 +5,7 @@
  *                  with all necessary information which belong to the object
  *                  handling in NagVis
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -25,7 +25,7 @@
  *****************************************************************************/
 
 /**
- * @author	Lars Michelsen <lars@vertical-visions.de>
+ * @author	Lars Michelsen <lm@larsmichelsen.com>
  */
 class NagVisStatefulObject extends NagVisObject {
     // "Global" Configuration variables for all stateful objects
@@ -112,7 +112,7 @@ class NagVisStatefulObject extends NagVisObject {
      * exclude uninteresting objects on maps.
      *
      * @return  Array  Array of child objects
-     * @author  Lars Michelsen <lars@vertical-visions.de>
+     * @author  Lars Michelsen <lm@larsmichelsen.com>
      */
     public function getStateRelevantMembers() {
         return $this->getMembers();
@@ -123,7 +123,7 @@ class NagVisStatefulObject extends NagVisObject {
      * This is mainly a wrapper arround getimagesize with caching code.
      *
      * @return  Array  Attributes/Details about the image
-     * @author  Lars Michelsen <lars@vertical-visions.de>
+     * @author  Lars Michelsen <lm@larsmichelsen.com>
      */
     public function getIconDetails() {
         if($this->iconDetails == null)
@@ -144,7 +144,7 @@ class NagVisStatefulObject extends NagVisObject {
      * Get method for the only hard states option
      *
      * @return	Boolean		True: Only hard states, False: Not only hard states
-     * @author	Lars Michelsen <lars@vertical-visions.de>
+     * @author	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function getOnlyHardStates() {
         return $this->only_hard_states;
@@ -156,7 +156,7 @@ class NagVisStatefulObject extends NagVisObject {
      * Get method for the recognize services option
      *
      * @return	Boolean		True: Recognize service states, False: Not recognize service states
-     * @author	Lars Michelsen <lars@vertical-visions.de>
+     * @author	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function getRecognizeServices() {
         return $this->recognize_services;
@@ -175,7 +175,7 @@ class NagVisStatefulObject extends NagVisObject {
      * Get method for the summary state of this object and members/childs
      *
      * @return	String		Summary state
-     * @author	Lars Michelsen <lars@vertical-visions.de>
+     * @author	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function getSummaryState() {
         return $this->sum[STATE];
@@ -217,7 +217,7 @@ class NagVisStatefulObject extends NagVisObject {
      * Set the summary state of the object
      *
      * @return	String		Summary state
-     * @author	Lars Michelsen <lars@vertical-visions.de>
+     * @author	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function setSummaryState($s) {
         $this->sum[STATE] = $s;
@@ -229,7 +229,7 @@ class NagVisStatefulObject extends NagVisObject {
      * Get method for the summary output of this object and members/childs
      *
      * @return	String		Summary output
-     * @author	Lars Michelsen <lars@vertical-visions.de>
+     * @author	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function getSummaryOutput() {
         return $this->sum[OUTPUT];
@@ -241,7 +241,7 @@ class NagVisStatefulObject extends NagVisObject {
      * Get method for the acknowledgement state of this object and members/childs
      *
      * @return	Boolean		True: Acknowledged, False: Not Acknowledged
-     * @author	Lars Michelsen <lars@vertical-visions.de>
+     * @author	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function getSummaryAcknowledgement() {
         return $this->sum[ACK];
@@ -253,7 +253,7 @@ class NagVisStatefulObject extends NagVisObject {
      * Get method for the duration of the current state
      *
      * @return	String		Time in the configured format
-     * @author	Lars Michelsen <lars@vertical-visions.de>
+     * @author	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function getStateDuration() {
         if(isset($this->state['last_state_change']) && $this->state['last_state_change'] != '0'
@@ -288,7 +288,7 @@ class NagVisStatefulObject extends NagVisObject {
      * Get method for the type of the current state
      *
      * @return	String		Type of state (HARD/SOFT)
-     * @author	Lars Michelsen <lars@vertical-visions.de>
+     * @author	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function getStateType() {
         if(isset($this->state[STATE_TYPE]) && $this->state[STATE_TYPE] != '') {
@@ -338,7 +338,7 @@ class NagVisStatefulObject extends NagVisObject {
      * Gets the state information of the object
      *
      * @return	Array		Object configuration
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function getObjectStateInformations($bFetchChilds=true) {
         $arr = Array();
@@ -410,7 +410,7 @@ class NagVisStatefulObject extends NagVisObject {
      * Parses the object in json format
      *
      * @return	String  JSON code of the object
-     * @author	Lars Michelsen <lars@vertical-visions.de>
+     * @author	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function parseJson() {
         // Get the correct url
@@ -430,7 +430,7 @@ class NagVisStatefulObject extends NagVisObject {
      *
      * Fetches the icon for the object depending on the summary state
      *
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function fetchIcon() {
         // Set the paths of this iconset
@@ -576,7 +576,7 @@ class NagVisStatefulObject extends NagVisObject {
      *
      * Checks if the current count is below the hover childs limit
      *
-     * @author	Lars Michelsen <lars@vertical-visions.de>
+     * @author	Lars Michelsen <lm@larsmichelsen.com>
      */
     protected function belowHoverChildsLimit($i) {
         return (($this->hover_childs_limit >= 0 && $i <= $this->hover_childs_limit) || $this->hover_childs_limit == -1);
@@ -585,7 +585,7 @@ class NagVisStatefulObject extends NagVisObject {
     /**
      * Escapes special chars in a string for putting it to a json string
      *
-     * @author Lars Michelsen <lars@vertical-visions.de>
+     * @author Lars Michelsen <lm@larsmichelsen.com>
      */
     protected function escapeStringForJson($s) {
         return strtr($s, Array("\r" => '<br />',
@@ -602,12 +602,13 @@ class NagVisStatefulObject extends NagVisObject {
      * Is called when an object should only be displayed as child
      * e.g. in hover menus. There are much less macros needed for this.
      *
-     * @author	Lars Michelsen <lars@vertical-visions.de>
+     * @author	Lars Michelsen <lm@larsmichelsen.com>
      */
     protected function fetchObjectAsChild() {
         $aChild = Array(
             'type'                => $this->getType(),
             'name'                => $this->getName(),
+            'display_name'        => $this->escapeStringForJson($this->getDisplayName()),
             'summary_state'       => state_str($this->sum[STATE]),
             'summary_in_downtime' => $this->sum[DOWNTIME],
             'summary_problem_has_been_acknowledged' => $this->sum[ACK],
@@ -638,7 +639,7 @@ class NagVisStatefulObject extends NagVisObject {
      *
      * Fetches the summary state from the member state counts
      *
-     * @author	Lars Michelsen <lars@vertical-visions.de>
+     * @author	Lars Michelsen <lm@larsmichelsen.com>
      */
     protected function fetchSummaryStateFromCounts() {
         global $_MAINCFG;
@@ -765,6 +766,11 @@ class NagVisStatefulObject extends NagVisObject {
         // Loop all object to gather the worst state and set it as summary
         // state of the current object
         foreach($objects AS $OBJ) {
+            if ($this->getType()=='map' && $OBJ->getType()=='map') {
+                if ($this->MAPCFG->getValue(0, 'ignore_linked_maps_summary_state') != 0)
+                    continue;
+            }
+
             $objSummaryState = $OBJ->sum[STATE];
             $objAck          = $OBJ->sum[ACK];
             $objDowntime     = $OBJ->sum[DOWNTIME];

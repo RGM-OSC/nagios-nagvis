@@ -1,0 +1,116 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+    <head>
+        <title>NagVis Worldmap</title>
+        <link rel="stylesheet" type="text/css" media="screen" href="../general/css/style.css" />
+    </head>
+    <body>
+        <h1>NagVis Worldmap</h1>
+        <h2>Introduction</h2>
+        <p>The NagVis Worldmap was introduced in NagVis 1.9. It has been developed to make it possible to create
+        modern and interactive geographical maps.
+        <p>You can put any kind of NagVis object on a worldmap which is then rendered using
+        <a href="http://www.openstreetmap.org">Open Street Map</a>.</p>
+
+        <p>The most significant different to classic maps is that the single worldmaps don't have a dedicated
+        set of map objects. In fact a worldmap is mainly the definition of a viewport (visible area, zoom)
+        on the world. Each object you position on a worldmap is saved globally across all your worldmaps.
+        This means if you add an object to a worldmap on a high zoom (detail level), the object is also added
+        to worldmaps which are showing the whole earth. This has been done this way out of the assumption
+        that each geographically positioned object has a single position on all maps.</p>
+
+        <h2>Prerequisites</h2>
+        <p>There is no special software needed on the NagVis server, but there is one special requirement. To
+        be able to use this feature, the browser opening NagVis worldmaps needs to be able to fetch the background
+        images (map tiles) from the internet, or a local mirror, see below. In most corporate environments this means that your client needs
+        to have a proxy server configured.</p>
+        <p>The worldmaps use the official tile servers of Open Street Map (<code>https://{s}.tile.openstreetmap.org/</code>) as a default.
+        Alternative tile server (local mirror) may be set in configuration, for example: <code>worldmap_tiles_url="http://my-tiles.local/{z}/{x}/{y}.png"</code> </p>
+
+        <p>The <a href="https://switch2osm.org/serving-tiles/">switch2osm guides</a> might help you to spin up your local OpenStreetMap mirror.</p>
+
+        <h2>The first call</h2>
+        <p>NagVis comes with a demo worldmap called "demo-worldmap". If your NagVis is configured correctly
+        and your browser is able to fetch the background images from the tile server, you should see a map
+        of germany with three nodes. One node is showing the map "demo-ham-racks", which contains hosts located
+        in Hamburg, one hostgroup "cgn" which contains all hosts located in Cologne and another hostgroup "muc"
+        which contains all hosts located in Munich.</p>
+
+        <p>This worldmap is defined using the map configuration file "demo-worldmap.cfg". The contents
+        look like this:</p>
+
+        <pre>define global {
+    alias=Demo: 4 Worldmap
+    parent_map=demo-overview
+    backend_id=demo
+    iconset=std_geo
+    icon_size=32
+
+    sources=worldmap
+    worldmap_center=50.86837814203458,10.21728515625
+    worldmap_zoom=6
+    worldmap_tiles_saturate=33
+
+    filter_group=my_group
+}</pre>
+
+        <p>The attributes after <code>icon_size=32</code> are worldmap specific definitions.</p>
+
+        <p>The <code>sources=worldmap</code> (mandatory) line tells the map to use the worldmap source, which cares about
+        putting all the objects having geographical coordinates, for rendering the map.</p>
+
+        <p>The <code>worldmap_center=50.86837814203458,10.21728515625</code> (mandatory) specifies the latitude and longitude
+        coordinates to use as initial center for the worldmaps viewport.</p>
+
+        <p>The <code>worldmap_zoom=6</code> (mandatory) specifies the initial zoom level to be used when rendering the worldmap.
+        NagVis allows zoom levels from 2 (world) to 20 (building, detail).</p>
+
+
+        <p>The <code>worldmap_tiles_saturate=33</code> (optional) dims the colors of default OpenStreetMap so that red motorways or
+        large green forests don't interfere with actual map objects. Possible values are 0 (no colors, grayscale) through 100 (full colors).</p>
+
+        <p>The <code>filter_group=my_group</code> (optional) is an attribute for filtering the host objects on a worldmap by their
+        memberships in the given host group. Only members of the group will be shown on the worldmap.</p>
+
+        <h2>Create your own worldmap</h2>
+
+        <p>You can start creating your own worldmap by using the way you use for other maps too. Select
+        <i>Options > Manage Maps</i>, then fill the <i>Create Map</i> form while choosing <i>Geographical map (interactive)</i>
+        from the map type dropdown and hit <i>Create</i>.</p>
+        <p>After opening the new map, you can pan and zoom to get the viewport you like, then choose <i>Edit Map > Viewport > Save View</i>
+        to persist the current viewport as initial viewport in the current worldmap.</p>
+
+        <p>You can also create a new worldmap from an existing one by zoom and pan to create the viewport you like
+        to use for your new worldmap, then choose <i>Edit Map > Viewport > Save as new Map</i>.
+
+        <h2>Objects on worldmap and zoom</h2>
+        The map object (host, line, textbox, ...) may be configured to only show at certain zoom levels. Related object attributes are:
+        <table style="width:100%">
+            <tr>
+                <th>Parameter</th><th>Default</th><th>Description</th>
+            </tr>
+            <tr>
+                <td>min_zoom</td><td>2</td><td>Only show the object at specified zoom level or higher (more detailed view)</td>
+            </tr>
+            <tr>
+                <td>max_zoom</td><td>20</td><td>Only show the object at specified zoom levels or lower (wider view)</td>
+            </tr>
+        </table>
+
+        <h2>Scalable textboxes on worldmap</h2>
+        Static textboxes can scale according to the view zoom level. In other words, a box shrinks as you zoom out, or grows as you zoom in.
+        <table style="width:100%">
+            <tr>
+                <th>Parameter</th><th>Default</th><th>Description</th>
+            </tr>
+            <tr>
+                <td>scale_to_zoom</td><td>No</td><td>Scale the textbox size down to 50% for every zoom level below <code>normal_size_at_zoom</code>,
+                    or 50% up for every zoom level above.
+                </td>
+            </tr>
+            <tr>
+                <td>normal_size_at_zoom</td><td>19</td><td>At this zoom level, the <code>scale_to_zoom=yes</code> textboxes are displayed at original 1:1 (100%) size.</td>
+            </tr>
+        </table>
+    </body>
+</html>

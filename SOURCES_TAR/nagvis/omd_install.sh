@@ -1,10 +1,10 @@
 #!/bin/bash
 # omd_install.sh - Installs NagVis to the local/ path of OMD sites
 #
-# Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+# Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
 #
 # Development:
-#  Lars Michelsen <lars@vertical-visions.de>
+#  Lars Michelsen <lm@larsmichelsen.com>
 #
 # License:
 #
@@ -121,6 +121,13 @@ backend="$OMD_SITE"
 [backend_$OMD_SITE]
 backendtype="mklivestatus"
 socket="unix:$OMD_ROOT/tmp/run/live"
+
+[backend_${OMD_SITE}_bi]
+backendtype="mkbi"
+base_url="http://localhost/$OMD_SITE/check_mk/"
+auth_user="automation"
+auth_secret_file="$OMD_ROOT/var/check_mk/web/automation/automation.secret"
+timeout=10
 EOF
 
 # Backup the agvis.conf on first time using omd_install.sh
@@ -137,6 +144,10 @@ cat > $OMD_ROOT/etc/apache/conf.d/nagvis.conf <<EOF
 
 Alias /$OMD_SITE/nagvis/var "$OMD_ROOT/tmp/nagvis/share"
 Alias /$OMD_SITE/nagvis "$OMD_ROOT/local/share/nagvis/htdocs"
+
+<Location ~ "/$OMD_SITE/nagvis/(index\.php|frontend/nagvis-js/index\.php|server/core/ajax_handler\.php)$">
+  Options +ExecCGI
+</Location>
 
 <Directory "$OMD_ROOT/tmp/nagvis/share">
   Options FollowSymLinks
@@ -187,9 +198,9 @@ patch -s $OMD_ROOT/local/share/nagvis/htdocs/server/core/defines/global.php <<EO
  
 +\$_path_parts = explode('/', dirname(\$_SERVER["SCRIPT_FILENAME"]));
 +if(\$_path_parts[count(\$_path_parts) - 6] == 'local') // handle OMD local/ hierarchy
-+    \$_base_dir = join(array_slice(explode('/' ,dirname(\$_SERVER["SCRIPT_FILENAME"])), 0, -6), '/');
++    \$_base_dir = join('/', array_slice(explode('/' ,dirname(\$_SERVER["SCRIPT_FILENAME"])), 0, -6));
 +else
-+    \$_base_dir = join(array_slice(explode('/' ,dirname(\$_SERVER["SCRIPT_FILENAME"])), 0, -5), '/');
++    \$_base_dir = join('/', array_slice(explode('/' ,dirname(\$_SERVER["SCRIPT_FILENAME"])), 0, -5));
 +
  /**
   * Set the search path for included files
@@ -198,12 +209,12 @@ patch -s $OMD_ROOT/local/share/nagvis/htdocs/server/core/defines/global.php <<EO
  	get_include_path()
 -	.PATH_SEPARATOR.'../../server/core/classes'
 -	.PATH_SEPARATOR.'../../server/core/classes/objects'
--	.PATH_SEPARATOR.'../../server/core/ext/php-gettext-1.0.9'
+-	.PATH_SEPARATOR.'../../server/core/ext/php-gettext-1.0.12'
 +	.PATH_SEPARATOR.\$_base_dir.'/local/share/nagvis/htdocs/server/core/classes'
 +	.PATH_SEPARATOR.\$_base_dir.'/local/share/nagvis/htdocs/server/core/classes/objects'
 +	.PATH_SEPARATOR.\$_base_dir.'/share/nagvis/htdocs/server/core/classes'
 +	.PATH_SEPARATOR.\$_base_dir.'/share/nagvis/htdocs/server/core/classes/objects'
-+	.PATH_SEPARATOR.\$_base_dir.'/share/nagvis/htdocs/server/core/ext/php-gettext-1.0.9'
++	.PATH_SEPARATOR.\$_base_dir.'/share/nagvis/htdocs/server/core/ext/php-gettext-1.0.12'
  );
  
  // Enable/Disable profiling of NagVis using xhprof.  To make use of this the

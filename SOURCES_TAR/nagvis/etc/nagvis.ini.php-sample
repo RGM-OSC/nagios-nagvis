@@ -52,10 +52,6 @@
 ; should be used to get the users contact group memberships from.
 ;authorisation_group_backends="live_1"
 ;
-; Sets the size of the controls in unlocked (edit) mode of the frontend. This 
-; defaults to a value of 10 which makes each control be sized to 10px * 10px.
-;controls_size=10
-;
 ; Dateformat of the time/dates shown in nagvis (For valid format see PHP docs)
 ;dateformat="Y-m-d H:i:s"
 ;
@@ -75,6 +71,14 @@
 ; can be found on http://pafciu17.dev.openstreetmap.org/
 ;geomap_server="http://geomap.nagvis.org/"
 ;
+; Public or private mirror of OpenStreetMap tiles server
+;worldmap_tiles_url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+;worldmap_tiles_attribution="&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>"
+;
+; Secondary "satellite" tiles server
+;worldmap_satellite_tiles_url=""
+;worldmap_satellite_tiles_attribution=""
+;
 ; In some cases NagVis needs to open connections to the internet. The cases are:
 ; - The new geomap needs access to openstreetmap webservices to be able to fetch
 ;   mapping information
@@ -90,7 +94,7 @@
 ;http_timeout=2
 ;
 ; Defines which translations of NagVis are available to the users
-;language_available="de_DE,en_US,es_ES,fr_FR,pt_BR"
+;language_available="de_DE,en_US,es_ES,fr_FR,pt_BR,zh_CN"
 ; Language detection steps to use. Available:
 ;  - User:    The user selection
 ;  - Session: Language saved in the session (Usually set after first setting an
@@ -99,7 +103,7 @@
 ;  - Config:  Use configured default language (See below)
 ;language_detection="user,session,browser,config"
 ;
-; Select language (Available by default: en_US, de_DE, fr_FR, pt_BR)
+; Select language (Available by default: en_US, de_DE, fr_FR, pt_BR, zh_CN)
 ;language="en_US"
 ;
 ; Defines the logon module to use. There are three logon modules to be used by
@@ -145,6 +149,21 @@
 ;logonenvvar="REMOTE_USER"
 ;logonenvcreateuser="1"
 ;logonenvcreaterole="Guests"
+;
+; Enable/Disable access to permitted monitoring objects only. This is useful if you want
+; to restrict the access to status information by NagVis AND by the authorization mechanism
+; of the monitoring software (e.g. Nagios).
+;
+; Disabled: access to status information is controlled by NagVis only. Every NagVis user who
+; has access to a NagVis map can see the status of all objects on this map. If he has the
+; permission to add objects to a map he can add ALL monitoring objects and is not restricted
+; by the NagVis permission management.
+;
+; Enabled: every user in NagVis can see the status information only of those monitoring objects
+; for which he has a contact definition in the monitoring software. This means that he
+; can see status information only if he is allowed to access a map AND if he has the permission
+; from the monitoring software for this object. The same applies to adding objects to a map.
+;only_permitted_objects=0
 ;
 ; Default rotation time of pages in rotations
 ;refreshtime=60
@@ -253,8 +272,6 @@
 ;headermenu="1"
 ; header template
 ;headertemplate="default"
-; Enable/Diable the fading effect of the submenus in the header menu
-;headerfade=1
 ; Show states in the sidebar header menu (if supported by template)
 ;header_show_states=0
 ; enable/disable hover menu
@@ -300,6 +317,14 @@
 ;aggrurl=""
 ; URL template for nested map links
 ;mapurl="[htmlbase]/index.php?mod=Map&act=view&show=[map_name]"
+; URL template for host downtime link in context menus
+;host_downtime_url="[html_cgi]/cmd.cgi?cmd_typ=55&host=[name]"
+; URL template for host acknowledgement link in context menus
+;host_ack_url="[html_cgi]/cmd.cgi?cmd_typ=96&host=[name]&force_check"
+; URL template for service downtime in context menus
+;service_downtime_url="[html_cgi]/cmd.cgi?cmd_typ=56&host=[name]&service=[service_description]"
+; URL template for service acknowledgement in context menus
+;service_ack_url="[html_cgi]/cmd.cgi?cmd_typ=7&host=[name]&service=[service_description]&force_check"
 ; Templates to be used for the different views.
 ;view_template="default"
 ; Enable/disable object labels for all objects
@@ -316,8 +341,6 @@
 [index]
 ; Color of the overview background
 ;backgroundcolor=#ffffff
-; Set number of map cells per row
-;cellsperrow=4
 ; enable/disable header menu
 ;headermenu="1"
 ; header template
@@ -358,15 +381,7 @@
 ; The interval in seconds in which the worker will check for objects which need
 ; to be updated
 ;interval=10
-; The maximum number of parameters used in ajax http requests
-; Some intrusion detection/prevention systems have a problem with
-; too many parameters in the url. Give 0 for no limit.
-;requestmaxparams=0
-; The maximum length of http request urls during ajax http requests
-; Some intrusion detection/prevention systems have a problem with
-; queries being too long
-;requestmaxlength=1900
-; The retention time of the states in the frontend in seconds. The state 
+; The retention time of the states in the frontend in seconds. The state
 ; information will be refreshed after this time
 ;updateobjectstates=30
 
@@ -434,15 +449,15 @@ backendtype="ndomy"
 ; ----------------------------
 
 ; in this example the browser switches between the maps demo and demo2 every 15
-; seconds, the rotation is enabled by url: index.php?rotation=demo
-[rotation_demo]
+; seconds, the rotation is enabled by url: index.php?rotation=example
+;[rotation_example]
 ; These steps are rotated. The single steps may have optional prefixes like "Demo2:"
 ; which are used as display text on the index pages rotation list.
 ; You may also add external URLs as steps. Simply enclose the url using []
 ; instead of the map name.
-maps="demo-germany,demo-ham-racks,demo-load,demo-muc-srv1,demo-geomap,demo-automap"
+;maps="map1,map2,map3"
 ; rotation interval (seconds)
-interval=15
+;interval=15
 
 ; ----------------------------
 ; Action definitions

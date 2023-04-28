@@ -3,7 +3,7 @@
  *
  * CoreModUser.php - Manages user defined options
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -23,7 +23,7 @@
  *****************************************************************************/
 
 /**
- * @author  Lars Michelsen <lars@vertical-visions.de>
+ * @author  Lars Michelsen <lm@larsmichelsen.com>
  */
 class CoreModUser extends CoreModule {
     protected $CORE;

@@ -61,16 +61,10 @@
         <td>audit_log</td><td>0</td><td>Enable/Disable logging of security related user actions in Nagvis. For example user logins and logouts are logged in var/nagvis-audit.log.</td>
         </tr>
         <tr>
-        <td>authmodule</td><td>CoreAuthModSQLite</td><td>Defines the authentication module to use. By default NagVis uses the built-in SQLite authentication module. On delivery there is no other authentication module available. It is possible to add own authentication modules for supporting other authentication mechanism. For details have a look at the <a href="auth_modules.html">authentication module</a> documentation.</td>
+        <td>authmodule</td><td>CoreAuthModSQLite</td><td>Defines the authentication module to use. By default NagVis uses the built-in SQLite authentication module. On delivery there is no other authentication module available. It is possible to add own authentication modules for supporting other authentication mechanism.</td>
         </tr>
         <tr>
-        <td>authorisationmodule</td><td>CoreAuthorisationModSQLite</td><td>Defines the authorisation module to use. By default NagVis uses the built-in SQLite authorisation module. On delivery there is no other authorisation module available. It is possible to add own authorisation modules for supporting other authorisation mechanism. For details have a look at the <a href="authorisation_modules.html">authorisation module</a> documentation.</td>
-        </tr>
-        <tr>
-          <td>controls_size <font color="#ff0000">(new in 1.6)</font></td>
-	  <td>10</td>
-	  <td>The size (in pixels) of object controls in unlocked (edit) mode in the frontend.
-              Object controls are for example the modify, delete and move icons.</td>
+        <td>authorisationmodule</td><td>CoreAuthorisationModSQLite</td><td>Defines the authorisation module to use. By default NagVis uses the built-in SQLite authorisation module. On delivery there is no other authorisation module available. It is possible to add own authorisation modules for supporting other authorisation mechanism.</td>
         </tr>
         <tr>
           <td>dateformat</td>
@@ -106,6 +100,28 @@
           <td>geomap_server <font color="#ff0000">(new in 1.7)</font></td>
 	  <td>http://geomap.nagvis.org/</td>
 	  <td>The server to use as source for the NagVis geomaps. Must implement the API which can be found <a href="http://pafciu17.dev.openstreetmap.org/">here</a></td>
+        </tr>
+        
+        <tr>
+            <td>worldmap_tiles_url <font color="#ff0000">(new in 1.9.13)</font></td>
+            <td>https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png</td>
+            <td>Worldmap uses OpenStreetMap tiles as default map background. The URL specifies where to GET the PNG tile images from.</td>
+        </tr>
+        <tr>
+            <td>worldmap_tiles_attribution <font color="#ff0000">(new in 1.9.13)</font></td>
+            <td>&copy; &lt;a href="http://www.openstreetmap.org/copyright"&gt;OpenStreetMap&lt;/a&gt;</td>
+            <td>Map tiles attribution text (shown in bottom right corner)</td>
+        </tr>
+        <tr>
+            <td>worldmap_satellite_tiles_url<br>
+                worldmap_satellite_tiles_attribution<br>
+                <font color="#ff0000">(new in 1.9.13)</font>
+            </td>
+            <td></td>
+            <td>Secondary map background tiles (satellite images) URL and attribution.
+                When used, the <a href="https://leafletjs.com/reference-1.5.0.html#control-layers">layers control</a>
+                appears on top right corner of the map.
+            </td>
         </tr>
 
         <tr>
@@ -172,8 +188,7 @@
             multisite when using the cookie based authentication.</p>
 
             <p>It is possible to add own logon modules for serving other
-            dialogs. For details take a look at the 
-            <a href="logon_modules.html">logon module</a> documentation.</p></td>
+            dialogs.</p></td>
         </tr>
         <tr>
         <td>logonenvvar</td><td>REMOTE_USER</td><td>Defines the environment variable to be used for fetching the authenticated user from the webservers environment. This option is only used with the logon modules LogonEnv and LogonMixed.</td>
@@ -204,12 +219,36 @@
             <td>Guest</td>
             <td>Same as the above &quot;logonenvcreaterole&quot; option. Only used by the LogonMultisite module.</td>
         </tr>
+        <tr>
+            <td>logon_multisite_cookie_version</td>
+            <td>0</td>
+            <td>When you use Checkmk 2.2 or newer, you need to set this to <tt>1</tt>. Only used by the LogonMultisite module.</td>
+        </tr>
 
         <tr>
             <td>multisite_snapin_layout</td>
             <td>list</td>
             <td>Can be set to &quot;tree&quot; to change the layout of the multisite snapin contents to a tree which
                 is built using the parent_map configuration option defined in the global sections of the maps.
+            </td>
+        </tr>
+
+        <tr>
+            <td>only_permitted_objects</td>
+            <td>0</td>
+            <td><p>Enable/Disable access to permitted monitoring objects only. This is useful if you want
+                to restrict the access to status information by NagVis AND by the authorization mechanism
+                of the monitoring software (e.g. Nagios).</p>
+
+                <p><i>Disabled</i>: access to status information is controlled by NagVis only. Every NagVis user who
+                has access to a NagVis map can see the status of all objects on this map. If he has the
+                permission to add objects to a map he can add ALL monitoring objects and is not restricted
+                by the NagVis permission management.</p>
+
+                <p><i>Enabled</i>: every user in NagVis can see the status information only of those monitoring objects
+                for which he has a contact definition in the monitoring software. This means that he
+                can see status information only if he is allowed to access a map AND if he has the permission
+                from the monitoring software for this object. The same applies to adding objects to a map.</p>
             </td>
         </tr>
 
@@ -359,9 +398,6 @@
         <td> headermenu </td><td> 1 </td><td>Enable/Disable the header menu</td>
         </tr>
         <tr>
-        <td> headerfade </td><td> 0 </td><td>Enable/Disable the fade effect of the submenus in the header menu (When the used header menu supports that option)</td>
-        </tr>
-        <tr>
         <td> headertemplate </td><td> default </td><td>Default <a href="header_templates.html">header template</a></td>
         </tr>
         <tr>
@@ -381,7 +417,7 @@
         <td> hoverchildsshow </td><td> 1 </td><td>Enable/Disable the child objects in hover menu</td>
         </tr>
         <tr>
-        <td> hoverchildssort </td><td> a </td><td>Sort method of the child objects (available: "s": state, "a": alphabet )</td>
+        <td> hoverchildssort </td><td> a </td><td>Sort method of the child objects (available: "s": state, "a": alphabet, "k": keep original order)</td>
         </tr>
         <tr>
         <td> hoverdelay </td><td> 0 </td><td>Delay of hover menu appearance in seconds</td>
@@ -397,6 +433,13 @@
         </tr>
         <tr>
         <td> icons </td><td> std_medium </td><td>Default iconset</td>
+        </tr>
+        <tr>
+            <td>icon_size</td>
+            <td></td>
+            <td>Scales the iconsets up or down while showing in the map. If left empty, the iconset images will be displayed
+                at their natural size. You can configure this option with either a single integer for giving width and height
+                at once, but you can also provide two comma separated integers to specify different values forr the width and height.
         </tr>
         <tr>
         <td> onlyhardstates </td><td> 0 </td><td>Recognize only hard states (not soft)</td>
@@ -460,6 +503,34 @@
           Available macros: [htmlcgi], [htmlbase], [map_name]</td>
         </tr>
         <tr>
+            <td>host_downtime_url</td>
+            <td>[html_cgi]/cmd.cgi?cmd_typ=55&host=[name]</td>
+            <td>The default url to open when a user clicks on the downtime link in the
+              context menu of hosts.
+              Available macros: [htmlcgi], [htmlbase], [host_name], [backend_id]</td>
+        </tr>
+        <tr>
+            <td>host_ack_url</td>
+            <td>[html_cgi]/cmd.cgi?cmd_typ=96&host=[name]&force_check</td>
+            <td>The default url to open when a user clicks on the acknowledge link in the
+              context menu of hosts.
+              Available macros: [htmlcgi], [htmlbase], [host_name], [backend_id]</td>
+        </tr>
+        <tr>
+            <td>service_downtime_url</td>
+            <td>[html_cgi]/cmd.cgi?cmd_typ=56&host=[name]&service=[service_description]</td>
+            <td>The default url to open when a user clicks on the downtime link in the
+              context menu of services.
+              Available macros: [htmlcgi], [htmlbase], [host_name], [service_description], [backend_id]</td>
+        </tr>
+        <tr>
+            <td>service_ack_url</td>
+            <td>[html_cgi]/cmd.cgi?cmd_typ=7&host=[name]&service=[service_description]&force_check</td>
+            <td>The default url to open when a user clicks on the acknowledge link in the
+              context menu of services.
+              Available macros: [htmlcgi], [htmlbase], [host_name], [service_description], [backend_id]</td>
+        </tr>
+        <tr>
             <td>view_template</td>
             <td>default</td>
             <td>Templates to be used for the different views.</td>
@@ -467,12 +538,12 @@
         <tr>
             <td>label_show</td>
             <td>0</td>
-            <td><font color="#ff0000">New in 1.6.4:</font> Show the objects labels or not.</td>
+            <td> Show the objects labels or not.</td>
         </tr>
         <tr>
             <td>line_weather_colors</td>
             <td>10:#8c00ff,25:#2020ff,40:#00c0ff,55:#00f000,70:#f0f000,85:#ffc000,100:#ff0000</td>
-            <td><font color="#ff0000">New in 1.6.5:</font> This defines the colours of weathermap lines
+            <td> This defines the colours of weathermap lines
              in the different percentage levels. For example above 10% load it will be coloured #8c00ff.</td>
         </tr>
         <tr>
@@ -507,7 +578,7 @@
             <td>Configure the background colour of the overview page</td>
         </tr>
         <tr>
-        <td> cellsperrow </td><td> 4 </td><td> Maps per row in map listing </td>
+        <td><strike>cellsperrow</strike></td><td> 4 </td><td> Maps per row in map listing (<font color="#ff0000">Deprecated in 1.8</font>)</td>
         </tr>
         <tr>
         <td> headermenu </td><td> 1 </td><td> Enable/Disable the header menu</td>

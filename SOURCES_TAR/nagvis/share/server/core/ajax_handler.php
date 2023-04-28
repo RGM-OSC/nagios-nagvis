@@ -3,7 +3,7 @@
  *
  * ajax_handler.php - Ajax handler for the NagVis frontend
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -33,6 +33,7 @@ require('../../server/core/functions/autoload.php');
 if (PROFILE) profilingStart();
 
 define('CONST_AJAX' , TRUE);
+header('Content-Type: application/json');
 
 try {
     require('../../server/core/functions/core.php');
@@ -55,7 +56,6 @@ try {
         'User',
         'Action',
     );
-
     require('../../server/core/functions/index.php');
     exit(0);
 } catch(NagVisException $e) {
@@ -63,14 +63,14 @@ try {
 } catch(NagVisErrorException $e) {
     echo json_encode(Array(
         'type'    => 'error',
-        'message' => "".$e,
-        'title'   => l('PHP ERROR'),
+        'message' => (string)$e,
+        'title'   => l('Error: PHP Error'),
     ));
 } catch(Exception $e) {
     echo json_encode(Array(
         'type'    => 'error',
         'message' => $e->getMessage(),
-        'title'   => l('ERROR - Unexpected exception'),
+        'title'   => l('Error: Unhandled Exception'),
     ));
 }
 exit(1);

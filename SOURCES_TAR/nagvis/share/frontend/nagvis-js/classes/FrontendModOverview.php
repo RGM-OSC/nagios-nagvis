@@ -3,7 +3,7 @@
  *
  * FrontendModOverview.php - Module for handling the overview page
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -23,7 +23,7 @@
  *****************************************************************************/
 
 /**
- * @author	Lars Michelsen <lars@vertical-visions.de>
+ * @author	Lars Michelsen <lm@larsmichelsen.com>
  */
 class FrontendModOverview extends FrontendModule {
     private $rotation = '';
@@ -67,8 +67,7 @@ class FrontendModOverview extends FrontendModule {
         // Need to parse the header menu?
         if(cfg('index','headermenu')) {
             // Parse the header menu
-            $HEADER = new NagVisHeaderMenu($this->UHANDLER,
-                                           cfg('index', 'headertemplate'));
+            $HEADER = new NagVisHeaderMenu(cfg('index', 'headertemplate'));
 
             // Put rotation information to header menu
             if($this->rotation != '') {

@@ -3,7 +3,7 @@
  *
  * gadgets_core.php - Core code for standard gadgets, provides basic functions
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -78,7 +78,7 @@
  *
  * @param   String  Nagios performance data
  * @return  Array   Array which contains parsed performance data information
- * @author      Lars Michelsen <lars@vertical-visions.de>
+ * @author      Lars Michelsen <lm@larsmichelsen.com>
  */
 function parsePerfdata($sPerfdata) {
 	$aMatches = Array();
@@ -154,7 +154,7 @@ function parsePerfdata($sPerfdata) {
  * Prints out an error box
  *
  * @param       String  $msg    String with error message
- * @author      Lars Michelsen <lars@vertical-visions.de>
+ * @author      Lars Michelsen <lm@larsmichelsen.com>
  */
 function errorBox($msg) {
     global $_MODE;

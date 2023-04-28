@@ -3,7 +3,7 @@
  *
  * GlobalMainCfg.php - Class for handling the main configuration of NagVis
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -35,7 +35,7 @@ function listAvailableLanguages() {
 }
 
 /**
- * @author	Lars Michelsen <lars@vertical-visions.de>
+ * @author	Lars Michelsen <lm@larsmichelsen.com>
  */
 class GlobalMainCfg {
     private $useCache = true;
@@ -55,7 +55,7 @@ class GlobalMainCfg {
      * Class Constructor
      *
      * @param	Array $configFile    List of paths to configuration files
-     * @author Lars Michelsen <lars@vertical-visions.de>
+     * @author Lars Michelsen <lm@larsmichelsen.com>
      */
     public function __construct() {
         $this->validConfig = Array(
@@ -104,12 +104,6 @@ class GlobalMainCfg {
                     'match'         => MATCH_STRING_NO_SPACE,
                 ),
 
-                'controls_size' => Array(
-		    'must'     => 1,
-                    'editable' => 1,
-                    'default'  => 10,
-                    'match'    => MATCH_INTEGER
-                ),
                 'dateformat' => Array(
                     'must'     => 1,
                     'editable' => 1,
@@ -160,6 +154,27 @@ class GlobalMainCfg {
                     'match'   => MATCH_STRING_URL,
                 ),
 
+                'worldmap_tiles_url' => array(
+                    'must'    => 0,
+                    'default' => 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    'match'   => MATCH_STRING_URL,
+                ),
+                'worldmap_tiles_attribution' => array(
+                    'must'    => 0,
+                    'default' => '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                    'match'   => MATCH_ALL
+                ),
+                'worldmap_satellite_tiles_url' => array(
+                    'must'    => 0,
+                    'default' => '',
+                    'match'   => MATCH_STRING_URL,
+                ),
+                'worldmap_satellite_tiles_attribution' => array(
+                    'must'    => 0,
+                    'default' => '',
+                    'match'   => MATCH_ALL
+                ),
+
                 'http_proxy' => array(
                     'must'    => 0,
                     'default' => null,
@@ -184,7 +199,7 @@ class GlobalMainCfg {
                 'language_available' => Array('must' => 1,
                     'editable' => 1,
                     'array' => true,
-                    'default' => Array('de_DE', 'en_US', 'es_ES', 'fr_FR', 'pt_BR'),
+                    'default' => Array('de_DE', 'en_US', 'es_ES', 'fr_FR', 'pt_BR', 'zh_CN'),
                     'match' => MATCH_STRING_NO_SPACE),
                 'language' => Array(
                     'must'       => 1,
@@ -243,6 +258,14 @@ class GlobalMainCfg {
                     'depends_value' => 'LogonMultisite',
                     'match'         => MATCH_STRING_PATH,
                 ),
+                'logon_multisite_cookie_version' => Array(
+                    'must'          => 0,
+                    'editable'      => 1,
+                    'default'       => '0',
+                    'depends_on'    => 'logonmodule',
+                    'depends_value' => 'LogonMultisite',
+                    'match'         => MATCH_INTEGER,
+                ),
                 'logon_multisite_createuser' => Array(
                     'must'          => 1,
                     'editable'      => 1,
@@ -267,6 +290,14 @@ class GlobalMainCfg {
                     'match'       => MATCH_STRING_NO_SPACE,
                     'field_type'  => 'dropdown',
                     'list'        => 'listMultisiteSnapinLayouts',
+                ),
+
+                'only_permitted_objects' => Array(
+                    'must'       => 0,
+                    'editable'   => 1,
+                    'default'    => 0,
+                    'match'      => MATCH_BOOLEAN,
+                    'field_type' => 'boolean',
                 ),
 
                 'user_filtering' => Array(
@@ -334,6 +365,17 @@ class GlobalMainCfg {
                     'default'     => '',
                     'match'       => MATCH_STRING_EMPTY
                 ),
+
+                'worldmap_start_pos' => array(
+                    'editable'    => true,
+                    'default'     => '51.505,-0.09',
+                    'match'       => MATCH_LATLONG,
+                ),
+                'worldmap_start_zoom' => array(
+                    'editable'    => true,
+                    'default'     => 13,
+                    'match'       => MATCH_INTEGER,
+                ),
             ),
             'defaults' => Array(
                 'backend' => Array(
@@ -349,6 +391,7 @@ class GlobalMainCfg {
                     'must'        => 0,
                     'editable'    => 1,
                     'default'     => 'transparent',
+                    'field_type'  => 'color',
                     'match'       => MATCH_COLOR
                 ),
                 'contextmenu' => Array('must' => 0,
@@ -478,6 +521,7 @@ class GlobalMainCfg {
                     'depends_on'    => 'headermenu',
                     'depends_value' => 1,
                     'field_type'    => 'boolean',
+                    'deprecated'    => 1,
                     'match'         => MATCH_BOOLEAN
                 ),
                 'header_show_states' => Array(
@@ -554,6 +598,13 @@ class GlobalMainCfg {
                     'list'       => 'listIconsets',
                     'match'      => MATCH_STRING_NO_SPACE
                 ),
+                'icon_size' => Array(
+                    'must'       => 1,
+                    'editable'   => 1,
+                    'default'    => array(),
+                    'match'      => MATCH_INTEGER,
+                    'array'    => true,
+                ),
                 'onlyhardstates' => Array('must' => 0,
                     'editable' => 1,
                     'default' => 0,
@@ -603,6 +654,26 @@ class GlobalMainCfg {
                     'default' => '',
                     'match'   => MATCH_STRING_URL_EMPTY
                 ),
+                'host_downtime_url' => Array(
+                    'must'    => 0,
+                    'default' => '[html_cgi]/cmd.cgi?cmd_typ=55&host=[name]',
+                    'match'   => MATCH_STRING_URL_EMPTY
+                ),
+                'host_ack_url' => Array(
+                    'must'    => 0,
+                    'default' => '[html_cgi]/cmd.cgi?cmd_typ=96&host=[name]&force_check',
+                    'match'   => MATCH_STRING_URL_EMPTY
+                ),
+                'service_downtime_url' => Array(
+                    'must'    => 0,
+                    'default' => '[html_cgi]/cmd.cgi?cmd_typ=56&host=[name]&service=[service_description]',
+                    'match'   => MATCH_STRING_URL_EMPTY
+                ),
+                'service_ack_url' => Array(
+                    'must'    => 0,
+                    'default' => '[html_cgi]/cmd.cgi?cmd_typ=7&host=[name]&service=[service_description]&force_check',
+                    'match'   => MATCH_STRING_URL_EMPTY
+                ),
                 'view_template' => Array(
                     'must'     => 0,
                     'editable' => 1,
@@ -613,7 +684,7 @@ class GlobalMainCfg {
                     'must'       => 0,
                     'editable'   => 1,
                     'default'    => '0',
-                    'match'      => MATCH_BOOLEAN, 
+                    'match'      => MATCH_BOOLEAN,
                     'field_type' => 'boolean',
                 ),
                 'line_weather_colors' => Array(
@@ -681,6 +752,7 @@ class GlobalMainCfg {
                     'depends_on' => 'grid_show',
                     'depends_value' => 1,
                     'default' => '#D5DCEF',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'grid_steps' => Array('must' => 0,
                     'editable' => 1,
@@ -1015,6 +1087,7 @@ class GlobalMainCfg {
                 'backgroundcolor' => Array('must' => 0,
                     'editable' => 1,
                     'default' => '#ffffff',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR)),
             'worker' => Array(
                 'interval' => Array('must' => 0,
@@ -1028,10 +1101,12 @@ class GlobalMainCfg {
                 'requestmaxparams' => Array('must' => 0,
                     'editable' => 1,
                     'default' => 0,
+                    'deprecated' => 1,
                     'match' => MATCH_INTEGER),
                 'requestmaxlength' => Array('must' => 0,
                     'editable' => 1,
                     'default' => 1900,
+                    'deprecated' => 1,
                     'match' => MATCH_INTEGER)),
             'states' => Array(
                 'unreachable' => Array('must' => 1,
@@ -1040,7 +1115,7 @@ class GlobalMainCfg {
                     'match' => MATCH_INTEGER),
                 'unreachable_stale' => Array('must' => 1,
                     'editable' => 1,
-                    'default' => 6,
+                    'default' => 9,
                     'match' => MATCH_INTEGER),
                 'unreachable_ack' => Array('must' => 1,
                     'editable' => 1,
@@ -1049,6 +1124,7 @@ class GlobalMainCfg {
                 'unreachable_ack_bgcolor' => Array('must' => 0,
                     'editable' => 1,
                     'default' => '',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'unreachable_downtime' => Array('must' => 1,
                     'editable' => 1,
@@ -1057,14 +1133,17 @@ class GlobalMainCfg {
                 'unreachable_downtime_bgcolor' => Array('must' => 0,
                     'editable' => 1,
                     'default' => '',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'unreachable_bgcolor' => Array('must' => 1,
                     'editable' => 1,
                     'default' => '#F1811B',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'unreachable_color' => Array('must' => 1,
                     'editable' => 1,
                     'default' => '#F1811B',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'unreachable_sound' => Array('must' => 0,
                     'editable' => 1,
@@ -1076,7 +1155,7 @@ class GlobalMainCfg {
                     'match' => MATCH_INTEGER),
                 'down_stale' => Array('must' => 1,
                     'editable' => 1,
-                    'default' => 6,
+                    'default' => 10,
                     'match' => MATCH_INTEGER),
                 'down_ack' => Array('must' => 1,
                     'editable' => 1,
@@ -1085,6 +1164,7 @@ class GlobalMainCfg {
                 'down_ack_bgcolor' => Array('must' => 0,
                     'editable' => 1,
                     'default' => '',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'down_downtime' => Array('must' => 1,
                     'editable' => 1,
@@ -1093,14 +1173,17 @@ class GlobalMainCfg {
                 'down_downtime_bgcolor' => Array('must' => 0,
                     'editable' => 1,
                     'default' => '',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'down_bgcolor' => Array('must' => 1,
                     'editable' => 1,
                     'default' => '#FF0000',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'down_color' => Array('must' => 1,
                     'editable' => 1,
                     'default' => '#FF0000',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'down_sound' => Array('must' => 0,
                     'editable' => 1,
@@ -1112,7 +1195,7 @@ class GlobalMainCfg {
                     'match' => MATCH_INTEGER),
                 'critical_stale' => Array('must' => 1,
                     'editable' => 1,
-                    'default' => 6,
+                    'default' => 8,
                     'match' => MATCH_INTEGER),
                 'critical_ack' => Array('must' => 1,
                     'editable' => 1,
@@ -1121,6 +1204,7 @@ class GlobalMainCfg {
                 'critical_ack_bgcolor' => Array('must' => 0,
                     'editable' => 1,
                     'default' => '',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'critical_downtime' => Array('must' => 1,
                     'editable' => 1,
@@ -1129,14 +1213,17 @@ class GlobalMainCfg {
                 'critical_downtime_bgcolor' => Array('must' => 0,
                     'editable' => 1,
                     'default' => '',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'critical_bgcolor' => Array('must' => 1,
                     'editable' => 1,
                     'default' => '#FF0000',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'critical_color' => Array('must' => 1,
                     'editable' => 1,
                     'default' => '#FF0000',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'critical_sound' => Array('must' => 0,
                     'editable' => 1,
@@ -1148,7 +1235,7 @@ class GlobalMainCfg {
                     'match' => MATCH_INTEGER),
                 'warning_stale' => Array('must' => 1,
                     'editable' => 1,
-                    'default' => 5,
+                    'default' => 7,
                     'match' => MATCH_INTEGER),
                 'warning_ack' => Array('must' => 1,
                     'editable' => 1,
@@ -1157,6 +1244,7 @@ class GlobalMainCfg {
                 'warning_ack_bgcolor' => Array('must' => 0,
                     'editable' => 1,
                     'default' => '',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'warning_downtime' => Array('must' => 1,
                     'editable' => 1,
@@ -1165,14 +1253,17 @@ class GlobalMainCfg {
                 'warning_downtime_bgcolor' => Array('must' => 0,
                     'editable' => 1,
                     'default' => '',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'warning_bgcolor' => Array('must' => 1,
                     'editable' => 1,
                     'default' => '#FFFF00',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'warning_color' => Array('must' => 1,
                     'editable' => 1,
                     'default' => '#FFFF00',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'warning_sound' => Array('must' => 0,
                     'editable' => 1,
@@ -1184,7 +1275,7 @@ class GlobalMainCfg {
                     'match' => MATCH_INTEGER),
                 'unknown_stale' => Array('must' => 1,
                     'editable' => 1,
-                    'default' => 3,
+                    'default' => 4,
                     'match' => MATCH_INTEGER),
                 'unknown_ack' => Array('must' => 1,
                     'editable' => 1,
@@ -1193,6 +1284,7 @@ class GlobalMainCfg {
                 'unknown_ack_bgcolor' => Array('must' => 0,
                     'editable' => 1,
                     'default' => '',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'unknown_downtime' => Array('must' => 1,
                     'editable' => 1,
@@ -1201,14 +1293,17 @@ class GlobalMainCfg {
                 'unknown_downtime_bgcolor' => Array('must' => 0,
                     'editable' => 1,
                     'default' => '',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'unknown_bgcolor' => Array('must' => 1,
                     'editable' => 1,
                     'default' => '#FFCC66',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'unknown_color' => Array('must' => 1,
                     'editable' => 1,
                     'default' => '#FFCC66',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'unknown_sound' => Array('must' => 0,
                     'editable' => 1,
@@ -1220,7 +1315,7 @@ class GlobalMainCfg {
                     'match' => MATCH_INTEGER),
                 'error_stale' => Array('must' => 1,
                     'editable' => 1,
-                    'default' => 3,
+                    'default' => 4,
                     'match' => MATCH_INTEGER),
                 'error_ack' => Array('must' => 1,
                     'editable' => 1,
@@ -1229,6 +1324,7 @@ class GlobalMainCfg {
                 'error_ack_bgcolor' => Array('must' => 0,
                     'editable' => 1,
                     'default' => '',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'error_downtime' => Array('must' => 1,
                     'editable' => 1,
@@ -1237,14 +1333,17 @@ class GlobalMainCfg {
                 'error_downtime_bgcolor' => Array('must' => 0,
                     'editable' => 1,
                     'default' => '',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'error_bgcolor' => Array('must' => 1,
                     'editable' => 1,
                     'default' => '#0000FF',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'error_color' => Array('must' => 1,
                     'editable' => 1,
                     'default' => '#0000FF',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'error_sound' => Array('must' => 0,
                     'editable' => 1,
@@ -1256,7 +1355,7 @@ class GlobalMainCfg {
                     'match' => MATCH_INTEGER),
                 'up_stale' => Array('must' => 1,
                     'editable' => 1,
-                    'default' => 3,
+                    'default' => 2,
                     'match' => MATCH_INTEGER),
                 'up_downtime' => Array('must' => 1,
                     'editable' => 1,
@@ -1265,10 +1364,12 @@ class GlobalMainCfg {
                 'up_bgcolor' => Array('must' => 1,
                     'editable' => 1,
                     'default' => '#00FF00',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'up_color' => Array('must' => 1,
                     'editable' => 1,
                     'default' => '#00FF00',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'up_sound' => Array('must' => 0,
                     'editable' => 1,
@@ -1280,7 +1381,7 @@ class GlobalMainCfg {
                     'match' => MATCH_INTEGER),
                 'ok_stale' => Array('must' => 1,
                     'editable' => 1,
-                    'default' => 2,
+                    'default' => 1,
                     'match' => MATCH_INTEGER),
                 'ok_downtime' => Array('must' => 1,
                     'editable' => 1,
@@ -1289,10 +1390,12 @@ class GlobalMainCfg {
                 'ok_bgcolor' => Array('must' => 1,
                     'editable' => 1,
                     'default' => '#00FF00',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'ok_color' => Array('must' => 1,
                     'editable' => 1,
                     'default' => '#00FF00',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'ok_sound' => Array('must' => 0,
                     'editable' => 1,
@@ -1309,10 +1412,12 @@ class GlobalMainCfg {
                 'pending_bgcolor' => Array('must' => 1,
                     'editable' => 1,
                     'default' => '#C0C0C0',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'pending_color' => Array('must' => 1,
                     'editable' => 1,
                     'default' => '#C0C0C0',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'pending_sound' => Array('must' => 0,
                     'editable' => 1,
@@ -1329,10 +1434,12 @@ class GlobalMainCfg {
                 'unchecked_bgcolor' => Array('must' => 1,
                     'editable' => 1,
                     'default' => '#C0C0C0',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'unchecked_color' => Array('must' => 1,
                     'editable' => 1,
                     'default' => '#C0C0C0',
+                    'field_type' => 'color',
                     'match' => MATCH_COLOR),
                 'unchecked_sound' => Array('must' => 0,
                     'editable' => 1,
@@ -1440,34 +1547,41 @@ class GlobalMainCfg {
         $this->PUCACHE = new GlobalFileCache(array_slice($this->configFiles, 0, count($this->configFiles) - 1),
                                              CONST_MAINCFG_CACHE.'-pre-user-'.CONST_VERSION.'-cache'.$cacheSuffix);
 
-  	if($this->CACHE->isCached(false) === -1
-           || $this->PUCACHE->isCached(false) === -1
-           || $this->PUCACHE->getCacheFileAge() < filemtime(CONST_MAINCFG_DIR)) {
-            // The cache is too old. Load all config files
-            foreach($this->configFiles AS $configFile) {
-                // Only proceed when the configuration file exists and is readable
-                if(!GlobalCore::getInstance()->checkExisting($configFile, true)
-                   || !GlobalCore::getInstance()->checkReadable($configFile, true))
-                    return false;
-                $this->readConfig($configFile, true, $configFile == end($this->configFiles));
+        try {
+  	    if($this->CACHE->isCached(false) === -1
+               || $this->PUCACHE->isCached(false) === -1
+               || $this->PUCACHE->getCacheFileAge() < filemtime(CONST_MAINCFG_DIR)) {
+                // The cache is too old. Load all config files
+                foreach($this->configFiles AS $configFile) {
+                    // Only proceed when the configuration file exists and is readable
+                    if(!GlobalCore::getInstance()->checkExisting($configFile, true)
+                       || !GlobalCore::getInstance()->checkReadable($configFile, true))
+                        return false;
+                    $this->readConfig($configFile, true, $configFile == end($this->configFiles));
+                }
+                $this->CACHE->writeCache($this->config, true);
+                if($this->preUserConfig !== null)
+                    $this->PUCACHE->writeCache($this->preUserConfig, true);
+            } else {
+                // Use the cache!
+                $this->config = $this->CACHE->getCache();
+                $this->preUserConfig = $this->PUCACHE->getCache();
             }
-            $this->CACHE->writeCache($this->config, true);
-            if($this->preUserConfig !== null)
-                $this->PUCACHE->writeCache($this->preUserConfig, true);
-        } else {
-            // Use the cache!
-            $this->config = $this->CACHE->getCache();
-            $this->preUserConfig = $this->PUCACHE->getCache();
-        }
 
-        // Update the cache time
-        $this->useCache = $this->CACHE->isCached(false);
+            // Update the cache time
+            $this->useCache = $this->CACHE->isCached(false);
+
+            // want to reduce the paths in the NagVis config, but don't want to hardcode the paths relative from the bases
+            $this->setPathsByBase($this->getValue('paths','base'),$this->getValue('paths','htmlbase'));
+        }
+        catch (Exception $e) {
+            // Try our best to set the correct paths - even in case of exceptions
+            $this->setPathsByBase($this->getValue('paths','base'),$this->getValue('paths','htmlbase'));
+            throw $e;
+        }
 
         // Parse the state weight array
         $this->parseStateWeight();
-
-        // want to reduce the paths in the NagVis config, but don't want to hardcode the paths relative from the bases
-        $this->setPathsByBase($this->getValue('paths','base'),$this->getValue('paths','htmlbase'));
 
         // set default value
         $this->validConfig['rotation']['interval']['default'] = $this->getValue('global','refreshtime');
@@ -1478,7 +1592,7 @@ class GlobalMainCfg {
      * Gets the cookie domain from the webservers environment and sets the
      * session cookie domain to this value
      *
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     private function setCookieDomainByEnv() {
         if(isset($_SERVER['SERVER_NAME']) && $_SERVER['SERVER_NAME'] !== '') {
@@ -1491,7 +1605,7 @@ class GlobalMainCfg {
      * definitions were moved to the backends so it is easier to create new
      * backends without any need to modify the main configuration
      *
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     private function getBackendValidConf() {
         // Get the configuration options from the backends
@@ -1516,7 +1630,7 @@ class GlobalMainCfg {
      *
      * @param	Boolean $printErr
      * @return	Boolean	Is Successful?
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     private function setPathsByBase($base, $htmlBase) {
         $this->validConfig['paths']['cfg']['default']                = $base.'etc/';
@@ -1563,7 +1677,7 @@ class GlobalMainCfg {
      *
      * @param	Boolean $printErr
      * @return	Boolean	Is Successful?
-     * @author	Lars Michelsen <lars@vertical-visions.de>
+     * @author	Lars Michelsen <lm@larsmichelsen.com>
      * @author	Roman Kyrylych <rkyrylych@op5.com>
      */
     private function getBasePath() {
@@ -1578,7 +1692,7 @@ class GlobalMainCfg {
      *
      * @param	Boolean $printErr
      * @return	Boolean	Is Successful?
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     private function readConfig($configFile, $printErr=1, $isUserMainCfg = False) {
         $numComments = 0;
@@ -1754,7 +1868,7 @@ class GlobalMainCfg {
      *
      * @param	Boolean $printErr
      * @return	Boolean	Is Successful?
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     private function checkMainConfigIsValid($printErr) {
         // check given objects and attributes
@@ -1857,7 +1971,7 @@ class GlobalMainCfg {
                                 // Check if the configured backend is defined in main configuration file
                                 if(!$this->onlyUserConfig && $type == 'defaults' && $key == 'backend' && !isset($this->config['backend_'.$val])) {
                                     if($printErr) {
-                                        throw new NagVisException(l('backendNotDefined', Array('BACKENDID' => $val)));
+                                        throw new NagVisException(l('The backend with the ID \"[BACKENDID]\" is not defined.', Array('BACKENDID' => $val)));
                                     }
                                     return FALSE;
                                 }
@@ -1882,7 +1996,7 @@ class GlobalMainCfg {
      * Returns the last modification time of the configuration file
      *
      * @return	Integer	Unix Timestamp
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function getConfigFileAge() {
         $newest = 0;
@@ -1898,7 +2012,7 @@ class GlobalMainCfg {
      *
      * @return  Boolean  Result
      * @return  Integer  Unix timestamp of cache creation time or -1 when not cached
-     * @author  Lars Michelsen <lars@vertical-visions.de>
+     * @author  Lars Michelsen <lm@larsmichelsen.com>
      */
     public function isCached() {
         return $this->useCache;
@@ -1911,7 +2025,7 @@ class GlobalMainCfg {
      * @param	String	$var	Variable
      * @param	String	$val	Value
      * @return	Boolean	Is Successful?
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function setValue($sec, $var, $val) {
         if(isset($this->config[$sec][$var]) && $val == '') {
@@ -2046,7 +2160,7 @@ class GlobalMainCfg {
      * A getter to provide all section names of main configuration
      *
      * @return  Array  List of all sections as values
-     * @author  Lars Michelsen <lars@vertical-visions.de>
+     * @author  Lars Michelsen <lm@larsmichelsen.com>
      */
     public function getSections() {
         $aRet = Array();
@@ -2062,7 +2176,7 @@ class GlobalMainCfg {
      * @param	String	$var	Variable
      * @param	String	$val	Value
      * @return	Boolean	Is Successful?
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function setRuntimeValue($var, $val) {
         $this->runtimeConfig[$var] = $val;
@@ -2074,7 +2188,7 @@ class GlobalMainCfg {
      *
      * @param	String	$var	Variable
      * @return	String	$val	Value
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function getRuntimeValue($var) {
         return isset($this->runtimeConfig[$var]) ? $this->runtimeConfig[$var] : '';
@@ -2084,11 +2198,10 @@ class GlobalMainCfg {
      * Parses general settings
      *
      * @return	String 	JSON Code
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function parseGeneralProperties() {
         $p = Array(
-          'controls_size'      => intval($this->getValue('global', 'controls_size')),
           'date_format'        => $this->getValue('global', 'dateformat'),
           'path_base'          => $this->getValue('paths','htmlbase'),
           'path_cgi'           => $this->getValue('paths','htmlcgi'),
@@ -2100,6 +2213,11 @@ class GlobalMainCfg {
           'internal_title'     => $this->getValue('internal', 'title'),
           'header_show_states' => intval($this->getValue('defaults', 'header_show_states')),
           'zoom_scale_objects' => intval($this->getValue('defaults', 'zoom_scale_objects')),
+          'worldmap_tiles_url' => $this->getValue('global', 'worldmap_tiles_url'),
+          'worldmap_tiles_attribution' => $this->getValue('global', 'worldmap_tiles_attribution'),
+          'worldmap_satellite_tiles_url' => $this->getValue('global', 'worldmap_satellite_tiles_url'),
+          'worldmap_satellite_tiles_attribution' => $this->getValue('global', 'worldmap_satellite_tiles_attribution'),
+          // Add custom action configuration
         );
 
         // Add custom action configuration
@@ -2119,14 +2237,12 @@ class GlobalMainCfg {
      * Parses the settings for the javascript worker
      *
      * @return	String 	JSON Code
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function parseWorkerProperties() {
         return json_encode(Array(
             'worker_interval'             => $this->getValue('worker', 'interval'),
-            'worker_update_object_states' => $this->getValue('worker', 'updateobjectstates'),
-            'worker_request_max_params'   => $this->getValue('worker', 'requestmaxparams'),
-            'worker_request_max_length'   => $this->getValue('worker', 'requestmaxlength')
+            'worker_update_object_states' => $this->getValue('worker', 'updateobjectstates')
         ));
     }
 
@@ -2174,7 +2290,7 @@ class GlobalMainCfg {
      * Returns an array with the state weight configuration
      *
      * @return  Array
-     * @author  Lars Michelsen <lars@vertical-visions.de>
+     * @author  Lars Michelsen <lm@larsmichelsen.com>
      */
     public function getStateWeight() {
         return $this->stateWeight;
@@ -2202,7 +2318,7 @@ class GlobalMainCfg {
      *
      * @param   String  Type to get the information for
      * @return  Array   The validConfig array
-     * @author  Lars Michelsen <lars@vertical-visions.de>
+     * @author  Lars Michelsen <lm@larsmichelsen.com>
      */
     function getValidObjectType($type) {
         return $this->validConfig[$type];
@@ -2212,7 +2328,7 @@ class GlobalMainCfg {
      * Gets the valid configuration array
      *
      * @return	Array The validConfig array
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     function getValidConfig() {
         return $this->validConfig;
@@ -2222,7 +2338,7 @@ class GlobalMainCfg {
      * Gets the configuration array
      *
      * @return	Array The validConfig array
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     function getConfig() {
         return $this->config;
@@ -2233,7 +2349,7 @@ class GlobalMainCfg {
      *
      * @param	String	$sec	Section
      * @return	Boolean	Is Successful?
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     function setSection($sec) {
         // Try to append new backends after already defined
@@ -2271,7 +2387,7 @@ class GlobalMainCfg {
      *
      * @param	String	$sec	Section
      * @return	Boolean	Is Successful?
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     function delSection($sec) {
         $this->config[$sec] = '';
@@ -2284,7 +2400,7 @@ class GlobalMainCfg {
      * Writes the config file completly from array $this->configFile
      *
      * @return	Boolean	Is Successful?
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     function writeConfig() {
         // Check for config file write permissions
@@ -2384,7 +2500,7 @@ class GlobalMainCfg {
      *
      * @param	Boolean $printErr
      * @return	Boolean	Is Successful?
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     function checkNagVisConfigWriteable($printErr) {
         return GlobalCore::getInstance()->checkWriteable($this->configFiles[count($this->configFiles)-1], $printErr);
@@ -2411,7 +2527,7 @@ class GlobalMainCfg {
         $titles = array(
             'global'   => l('Global Settings'),
             'defaults' => l('Object Defaults'),
-            'index'    => l('Overview Page'),
+            'index'    => l('Overview'),
             'worker'   => l('State Updates'),
             'states'   => l('States'),
             'paths'    => l('Paths'),

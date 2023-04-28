@@ -3,7 +3,7 @@
  *
  * NagVisUrlView.php - Class for parsing the NagVis urls in nagvis-js frontend
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -23,7 +23,7 @@
  *****************************************************************************/
 
 /**
- * @author	Lars Michelsen <lars@vertical-visions.de>
+ * @author	Lars Michelsen <lm@larsmichelsen.com>
  */
 class NagVisUrlView {
     private $url = '';
@@ -34,7 +34,7 @@ class NagVisUrlView {
      * Class Constructor
      *
      * @param    String          $NAME
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function __construct(GlobalCore $CORE, $url) {
         $this->url = $url;
@@ -43,7 +43,7 @@ class NagVisUrlView {
     /**
      * Set the page content
      *
-     * @author  Lars Michelsen <lars@vertical-visions.de>
+     * @author  Lars Michelsen <lm@larsmichelsen.com>
      */
     public function setContent($s) {
         $this->content = $s;
@@ -53,17 +53,24 @@ class NagVisUrlView {
      * Set the rotation properties if the user wants a rotation
      *
      * @param   Array
-     * @author  Lars Michelsen <lars@vertical-visions.de>
+     * @author  Lars Michelsen <lm@larsmichelsen.com>
      */
     public function setRotation($a) {
         $this->aRotation = $a;
+    }
+
+    private function getProperties() {
+        return array(
+            'url'       => $this->url,
+            'view_type' => 'url',
+        );
     }
 
     /**
      * Parses the url and the objects for the nagvis-js frontend
      *
      * @return	String 	String with JS Code
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function parse() {
         global $_MAINCFG;
@@ -82,6 +89,7 @@ class NagVisUrlView {
             'generalProperties'  => $_MAINCFG->parseGeneralProperties(),
             'workerProperties'   => $_MAINCFG->parseWorkerProperties(),
             'rotationProperties' => json_encode($this->aRotation),
+            'pageProperties'     => json_encode($this->getProperties()),
             'iframe'             => $iframe,
             'url'                => $url,
             'fileAges'           => json_encode(Array(

@@ -3,7 +3,7 @@
  *
  * NagVisOverviewView.php - Class for handling the map index page
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -22,18 +22,40 @@
  *
  *****************************************************************************/
 
-/**
- * @author	Lars Michelsen <lars@vertical-visions.de>
- */
 class NagVisOverviewView {
     public function __construct($CORE) {
+    }
+
+    private function getProperties() {
+        $arr = Array();
+
+        $arr['view_type']          = 'overview';
+        $arr['showmaps']           = (int) cfg('index', 'showmaps');
+        $arr['showgeomap']         = (int) cfg('index', 'showgeomap');
+        $arr['showmapthumbs']      = (int) cfg('index', 'showmapthumbs');
+        $arr['showrotations']      = (int) cfg('index', 'showrotations');
+
+        $arr['page_title']         = cfg('internal', 'title');
+        $arr['favicon_image']      = cfg('paths', 'htmlimages').'internal/favicon.png';
+        $arr['background_color']   = cfg('index','backgroundcolor');
+
+        $arr['lang_mapIndex']      = l('mapIndex');
+        $arr['lang_rotationPools'] = l('rotationPools');
+
+        $arr['event_log']          = (int) cfg('defaults', 'eventlog');
+        $arr['event_log_level']    = cfg('defaults', 'eventloglevel');
+        $arr['event_log_events']   = (int) cfg('defaults', 'eventlogevents');
+        $arr['event_log_height']   = (int) cfg('defaults', 'eventlogheight');
+        $arr['event_log_hidden']   = (int) cfg('defaults', 'eventloghidden');
+
+        return $arr;
     }
 
     /**
      * Parses the information for json
      *
      * @return	String 	String with Html Code
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function parse() {
         global $_MAINCFG, $CORE;
@@ -50,14 +72,11 @@ class NagVisOverviewView {
             'workerProperties'  => $_MAINCFG->parseWorkerProperties(),
             'stateProperties'   => json_encode($_MAINCFG->getStateWeightJS()),
             'userProperties'    => $USERCFG->doGetAsJson(),
+            'pageProperties'    => json_encode($this->getProperties()),
             'fileAges'          => json_encode(Array(
                 'maincfg' => $_MAINCFG->getConfigFileAge(),
             )),
-            'locales'           => json_encode(Array(
-                // FIXME: Duplicated definitions in NagVisMapView.php and NagVisOverviewView.php
-                'more items...' => l('more items...'),
-                'Create Object' => l('Create Object'),
-            )),
+            'locales'           => json_encode($CORE->getGeneralJSLocales()),
             'rotation_names'    => json_encode($rotations),
             'map_names'         => json_encode($maps),
         );

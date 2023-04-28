@@ -34,6 +34,17 @@ $configVars = array(
     ),
 );
 
+// Assign config variables to specific object types
+global $configVarMap;
+$configVarMap = array(
+    'global' => array(
+        'appearance' => array(
+            'width'  => null,
+            'height' => null,
+        ),
+    ),
+);
+
 function iconset_size($iconset) {
     global $CORE;
     $fileType = $CORE->getIconsetFiletype($iconset);

@@ -4,7 +4,7 @@
  * NagVisAggr.php - Handles aggregations of either hosts or services
  *                      for example Check_MK BI aggregations
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -83,8 +83,11 @@ class NagVisAggr extends NagVisStatefulObject {
         // use the summary state provided by the backend, this is
         // the summary state provided by the aggregation tool based
         // on the configured rules
-        if ($this->state[STATE] !== null)
-            $this->sum[STATE] = $this->state[STATE];
+        if ($this->state[STATE] !== null) {
+            $this->sum[STATE]    = $this->state[STATE];
+            $this->sum[ACK]      = $this->state[ACK];
+            $this->sum[DOWNTIME] = $this->state[DOWNTIME];
+        }
 
         // Use state summaries when some are available to
         // calculate summary state and output

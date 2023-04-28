@@ -4,7 +4,7 @@
  * NagVisIndexView.php - Class for parsing the NagVis index in nagvis-js
  *                       frontend
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -24,7 +24,7 @@
  *****************************************************************************/
 
 /**
- * @author	Lars Michelsen <lars@vertical-visions.de>
+ * @author	Lars Michelsen <lm@larsmichelsen.com>
  */
 class NagVisIndexView {
     private $sSubtitle = '';
@@ -55,7 +55,7 @@ class NagVisIndexView {
      * Parses the map and the objects for the nagvis-js frontend
      *
      * @return	String 	String with JS Code
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function parse() {
         // Initialize template system
@@ -67,6 +67,7 @@ class NagVisIndexView {
             'htmlBase'         => cfg('paths', 'htmlbase'),
             'htmlJs'           => cfg('paths', 'htmljs'),
             'htmlCss'          => cfg('paths', 'htmlcss'),
+            'version'          => CONST_VERSION,
             'htmlTemplates'    => path('html', 'global', 'templates'),
             'bUseCompressedJs' => $this->checkJsCompressed(),
             'customStylesheet' => $this->sCustomStylesheet,
@@ -82,7 +83,7 @@ class NagVisIndexView {
      * Checks if the compressed javascript file exists
      *
      * @return	Boolean
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     private function checkJsCompressed() {
         return file_exists(cfg('paths', 'js').'NagVisCompressed.js');

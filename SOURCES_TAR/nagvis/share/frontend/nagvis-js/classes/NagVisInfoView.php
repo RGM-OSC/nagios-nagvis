@@ -4,7 +4,7 @@
  * NagVisInfoView.php - Class for handling the rendering of the support
  *                      information page
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -24,7 +24,7 @@
  *****************************************************************************/
 
 /**
- * @author	Lars Michelsen <lars@vertical-visions.de>
+ * @author	Lars Michelsen <lm@larsmichelsen.com>
  */
 class NagVisInfoView {
     public function __construct($CORE) {}
@@ -33,7 +33,7 @@ class NagVisInfoView {
      * Parses the information in html format
      *
      * @return	String 	String with Html Code
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function parse() {
         global $AUTH, $AUTHORISATION;
@@ -78,8 +78,8 @@ class NagVisInfoView {
             'userAuthModule'      => $AUTH->getAuthModule(),
             'userLogonModule'     => $AUTH->getLogonModule(),
             'userAuthTrusted'     => ($AUTH->authedTrusted() ? l("yes") : l("no")),
-            'compatJsonEncode'    => (!COMPAT_JSON_ENCODE ? l("yes") : l("no (compat mode, may lead to performance problems)")),
-            'compatJsonDecode'    => (!COMPAT_JSON_DECODE ? l("yes") : l("no (compat mode, may lead to performance problems)")),
+            'compatJsonEncode'    => (l("yes")),
+            'compatJsonDecode'    => (l("yes")),
         );
 
         // Build page based on the template file and the data array

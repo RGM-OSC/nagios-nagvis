@@ -1,6 +1,6 @@
 <?php
 /*****************************************************************************
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -156,6 +156,7 @@ function listHoverChildSorters() {
     return Array(
         'a' => l('Alphabetically'),
         's' => l('State'),
+        'k' => l('Keep original order'),
     );
 }
 

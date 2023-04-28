@@ -23,7 +23,7 @@
  *****************************************************************************/
 
 /**
- * @author  Lars Michelsen  <lars@vertical-visions.de>
+ * @author  Lars Michelsen  <lm@larsmichelsen.com>
  */
 class GlobalBackendTest implements GlobalBackendInterface {
     private $backendId = '';
@@ -177,15 +177,19 @@ class GlobalBackendTest implements GlobalBackendInterface {
     }
 
     private function hostgroup($name, $members) {
-            return  Array('name'  => $name,
-                        'alias' => 'Alias '.$name,
-                              'members' => $members);
+        return  Array(
+            'name'    => $name,
+            'alias'   => 'Alias '.$name,
+            'members' => $members
+        );
     }
 
     private function servicegroup($name, $members) {
-        return Array('name'  => $name,
-                     'alias' => 'Alias '.$name,
-                     'members' => $members);
+        return Array(
+            'name'    => $name,
+            'alias'   => 'Alias '.$name,
+            'members' => $members
+        );
     }
 
     private function genObj() {
@@ -336,8 +340,25 @@ class GlobalBackendTest implements GlobalBackendInterface {
         }
     }
 
+    public function getHostNamesProblematic() {
+        $a = array();
+        foreach ($this->obj['host'] AS $hostname => $host)
+            if ($host[0] != UP)
+                $a[] = $hostname;
+
+        foreach ($this->obj['service'] AS $hostname => $services)
+            foreach ($services AS $service_desc => $service)
+                if ($service[0] != OK)
+                    $a[] = $hostname;
+
+        return $a;
+    }
+
     public function getHostNamesInHostgroup($group) {
-        return $this->obj['hostgroup'][$group]['members'];
+        if (isset($this->obj['hostgroup'][$group]))
+            return $this->obj['hostgroup'][$group]['members'];
+        else
+            return array();
     }
 
     public function getProgramStart() {
@@ -393,7 +414,7 @@ class GlobalBackendTest implements GlobalBackendInterface {
      * at the moment when the class is destroyed. It is
      * important to close the socket in a clean way.
      *
-     * @author  Lars Michelsen <lars@vertical-visions.de>
+     * @author  Lars Michelsen <lm@larsmichelsen.com>
      */
     public function __destruct() {}
 
@@ -403,7 +424,7 @@ class GlobalBackendTest implements GlobalBackendInterface {
      * Returns the valid config for this backend
      *
      * @return	Array
-     * @author	Lars Michelsen <lars@vertical-visions.de>
+     * @author	Lars Michelsen <lm@larsmichelsen.com>
      */
     public static function getValidConfig() {
         return Array();
@@ -419,7 +440,7 @@ class GlobalBackendTest implements GlobalBackendInterface {
      * @param   String   Name2 of the objecs
      * @return  Array    Results of the query
    * @author  Mathias Kettner <mk@mathias-kettner.de>
-     * @author  Lars Michelsen <lars@vertical-visions.de>
+     * @author  Lars Michelsen <lm@larsmichelsen.com>
      */
     public function getObjects($type, $name1Pattern = '', $name2Pattern = '') {
         switch($type) {
@@ -448,7 +469,7 @@ class GlobalBackendTest implements GlobalBackendInterface {
                                   'name2' => $entry[DISPLAY_NAME]);
             } elseif ($type != 'service') {
                 $result[] = Array('name1' => $key,
-                                  'name2' => $entry[ALIAS]);
+                                  'name2' => $entry['alias']);
             } else {
                 $result[] = Array('name1' => $entry[DESCRIPTION],
                                   'name2' => $entry[DESCRIPTION]);
@@ -466,7 +487,7 @@ class GlobalBackendTest implements GlobalBackendInterface {
      * @param   Array     List of objects to query
      * @param   Array     List of filters to apply
      * @return  String    Parsed filters
-     * @author  Lars Michelsen <lars@vertical-visions.de>
+     * @author  Lars Michelsen <lm@larsmichelsen.com>
      */
     private function parseFilter($objects, $filters) {
         $aFilters = Array();
@@ -524,7 +545,7 @@ class GlobalBackendTest implements GlobalBackendInterface {
      * @param   Array     List of objects to query
      * @param   Array     List of filters to apply
      * @author  Mathias Kettner <mk@mathias-kettner.de>
-     * @author  Lars Michelsen <lars@vertical-visions.de>
+     * @author  Lars Michelsen <lm@larsmichelsen.com>
      */
     public function getHostState($objects, $options, $filters) {
         /*if($options & 1)
@@ -542,6 +563,10 @@ class GlobalBackendTest implements GlobalBackendInterface {
         } elseif(count($filters) == 1 && $filters[0]['key'] == 'host_groups' && $filters[0]['op'] == '>=') {
             foreach($objects AS $OBJS) {
                 $name = $OBJS[0]->getName();
+
+                if (!isset($this->obj['hostgroup'][$name]))
+                    continue; // skip not existing hostgroups
+
                 foreach($this->obj['hostgroup'][$name]['members'] AS $hostname) {
                     $host = $this->obj['host'][$hostname];
                     $arrReturn[$hostname] = $this->obj['host'][$hostname];
@@ -563,7 +588,7 @@ class GlobalBackendTest implements GlobalBackendInterface {
      *
      * @param   Array     List of objects to query
      * @param   Array     List of filters to apply
-     * @author  Lars Michelsen <lars@vertical-visions.de>
+     * @author  Lars Michelsen <lm@larsmichelsen.com>
      */
     public function getServiceState($objects, $options, $filters) {
         $objFilter = $this->parseFilter($objects, $filters);
@@ -576,7 +601,8 @@ class GlobalBackendTest implements GlobalBackendInterface {
         if(count($filters) == 1 && $filters[0]['key'] == 'host_name' && $filters[0]['op'] == '=') {
             // All services of a host
             foreach($objects AS $OBJS) {
-                $arrReturn[$OBJS[0]->getName()] = $this->obj['service'][$OBJS[0]->getName()];
+                if (isset($this->obj['service'][$OBJS[0]->getName()]))
+                    $arrReturn[$OBJS[0]->getName()] = $this->obj['service'][$OBJS[0]->getName()];
             }
         } elseif(count($filters) == 1 && $filters[0]['key'] == 'service_groups' && $filters[0]['op'] == '>=') {
             // All services of a servicegroup
@@ -600,6 +626,8 @@ class GlobalBackendTest implements GlobalBackendInterface {
             && $filters[1]['key'] == 'service_description' && $filters[1]['op'] == '=') {
             // One specific service of a host
             foreach($objects AS $OBJS) {
+                if (!isset($this->obj['service'][$OBJS[0]->getName()]))
+                    continue;
                 foreach($arrReturn[$OBJS[0]->getName()] = $this->obj['service'][$OBJS[0]->getName()] AS $service) {
                     if($service[DESCRIPTION] == $OBJS[0]->getServiceDescription()) {
                         $arrReturn[$OBJS[0]->getName().'~~'.$OBJS[0]->getServiceDescription()] = $service;
@@ -625,7 +653,7 @@ class GlobalBackendTest implements GlobalBackendInterface {
      * @param   Bitmask   This is a mask of options to use during the query
      * @param   Array     List of filters to apply
      * @return  Array     List of states and counts
-     * @author  Lars Michelsen <lars@vertical-visions.de>
+     * @author  Lars Michelsen <lm@larsmichelsen.com>
      */
     public function getHostMemberCounts($objects, $options, $filters) {
         /*if($options & 1)
@@ -653,6 +681,10 @@ class GlobalBackendTest implements GlobalBackendInterface {
             // Get service state counts for all hosts in a hostgroup (separated by host)
             foreach($objects AS $OBJS) {
                 $name = $OBJS[0]->getName();
+
+                if (!isset($this->obj['hostgroup'][$name]))
+                    continue; // skip not existing hostgroups
+
                 foreach($this->obj['hostgroup'][$name]['members'] AS $hostname) {
                     $resp = $this->getHostMemberCounts(Array(Array(new NagVisHost($this->backendId, $hostname))), $options, Array(Array('key' => 'host_name', 'op' => '=', 'val' => 'name')));
                     $aReturn[$hostname] = $resp[$hostname];
@@ -676,7 +708,7 @@ class GlobalBackendTest implements GlobalBackendInterface {
      * @param   Array     List of objects to query
      * @param   Array     List of filters to apply
      * @return  Array     List of states and counts
-     * @author  Lars Michelsen <lars@vertical-visions.de>
+     * @author  Lars Michelsen <lm@larsmichelsen.com>
      */
     public function getHostgroupStateCounts($objects, $options, $filters) {
         /*if($options & 1)
@@ -693,6 +725,10 @@ class GlobalBackendTest implements GlobalBackendInterface {
                     $aReturn[$name] = Array('counts' => $this->serviceStates);
                     $aReturn[$name]['counts'] += $this->hostStates;
                 }
+
+                if (!isset($this->obj['hostgroup'][$name]))
+                    continue; // skip not existing objects
+
                 foreach($this->obj['hostgroup'][$name]['members'] AS $hostname) {
                     $host = $this->obj['host'][$hostname];
 
@@ -703,7 +739,7 @@ class GlobalBackendTest implements GlobalBackendInterface {
                     else
                         $aReturn[$name]['counts'][$host[STATE]]['normal']++;
 
-              // If recognize_services are disabled don't fetch service information
+                    // If recognize_services are disabled don't fetch service information
                     if($options & 2)
                         continue;
 
@@ -733,7 +769,7 @@ class GlobalBackendTest implements GlobalBackendInterface {
      * @param   Array     List of objects to query
      * @param   Array     List of filters to apply
      * @return  Array     List of states and counts
-     * @author  Lars Michelsen <lars@vertical-visions.de>
+     * @author  Lars Michelsen <lm@larsmichelsen.com>
      */
     public function getServicegroupStateCounts($objects, $options, $filters) {
         /*if($options & 1)
@@ -813,7 +849,7 @@ class GlobalBackendTest implements GlobalBackendInterface {
      * @param   String   Hostname
      * @return  Array    List of hostnames
    * @author  Mathias Kettner <mk@mathias-kettner.de>
-     * @author  Lars Michelsen <lars@vertical-visions.de>
+     * @author  Lars Michelsen <lm@larsmichelsen.com>
      */
     public function getDirectParentDependenciesNamesByHostName($hostName, $min_business_impact=false) {
         return $this->getDirectParentNamesByHostName($hostName);

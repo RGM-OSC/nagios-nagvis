@@ -4,7 +4,7 @@
  * NagVisService.php - Class of a Service in NagVis with all necessary
  *                  information which belong to the object handling in NagVis
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -24,7 +24,7 @@
  *****************************************************************************/
 
 /**
- * @author	Lars Michelsen <lars@vertical-visions.de>
+ * @author	Lars Michelsen <lm@larsmichelsen.com>
  */
 class NagVisService extends NagVisStatefulObject {
     protected $type = 'service';
@@ -56,7 +56,7 @@ class NagVisService extends NagVisStatefulObject {
     /**
      * Queues state fetching for this object
      */
-    public function queueState($_unused_flag = true, $_unused_flag = true) {
+    public function queueState($_unused_flag = true, $_unused_flag2 = true) {
         global $_BACKEND;
         $_BACKEND->queue(Array('serviceState' => true), $this);
     }

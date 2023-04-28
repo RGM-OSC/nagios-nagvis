@@ -4,7 +4,7 @@
  * NagVisMapObj.php - Class of a Map object in NagVis with all necessary
  *                  information which belong to the object handling in NagVis
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * Modifications by Super-Visions BVBA
  * Copyright (c) 2010 Super-Visions BVBA (Contact: nagvis@super-visions.com)
@@ -185,9 +185,9 @@ class NagVisMapObj extends NagVisStatefulObject {
      * are queued they can be executed. Then all fetched information gets assigned to
      * the single objects.
      *
-     * @author	Lars Michelsen <lars@vertical-visions.de>
+     * @author	Lars Michelsen <lm@larsmichelsen.com>
      */
-    public function queueState($_unused_flag = true, $_unused_flag = true) {
+    public function queueState($_unused_flag = true, $_unused_flag2 = true) {
         // Get state of all member objects
         foreach($this->getStateRelevantMembers() AS $OBJ) {
             // The states of the map objects members only need to be fetched when this
@@ -207,7 +207,7 @@ class NagVisMapObj extends NagVisStatefulObject {
      *
      * Apllies the object state after queueing and fetching by the backend.
      *
-     * @author	Lars Michelsen <lars@vertical-visions.de>
+     * @author	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function applyState() {
         if($this->problem_msg) {
@@ -243,7 +243,7 @@ class NagVisMapObj extends NagVisStatefulObject {
      *
      * Links the object in the object tree to the map objects
      *
-     * @author	Lars Michelsen <lars@vertical-visions.de>
+     * @author	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function objectTreeToMapObjects(&$OBJ, &$arrHostnames=Array()) {
         $this->members[] = $OBJ;
@@ -269,7 +269,7 @@ class NagVisMapObj extends NagVisStatefulObject {
      *
      * @param 	Boolean	$printErr
      * @return	Boolean	Is Check Successful?
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function checkMaintenance($printErr) {
         if($this->MAPCFG->getValue(0, 'in_maintenance')) {
@@ -310,7 +310,7 @@ class NagVisMapObj extends NagVisStatefulObject {
      * Gets all objects of the map
      *
      * @author	Thomas Casteleyn <thomas.casteleyn@super-visions.com>
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function fetchMapObjects(&$arrMapNames = Array(), $depth = 0) {
         foreach($this->MAPCFG->getMapObjects() AS $objConf) {
@@ -348,8 +348,8 @@ class NagVisMapObj extends NagVisStatefulObject {
                     $OBJ = new NagVisAggr($objConf['backend_id'], $objConf['name']);
                 break;
                 case 'map':
-                    // Initialize map configuration
-                    $SUBMAPCFG = new GlobalMapCfg($objConf['map_name']);
+                    // Initialize map configuration (as non view map cfg)
+                    $SUBMAPCFG = new GlobalMapCfg($objConf['map_name'], false);
 
                     $mapCfgInvalid = null;
                     if($SUBMAPCFG->checkMapConfigExists(0)) {
@@ -470,7 +470,7 @@ class NagVisMapObj extends NagVisStatefulObject {
      *
      * Fetches the summary output of the map
      *
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     private function fetchSummaryOutput() {
         if($this->hasMembers()) {
@@ -496,7 +496,7 @@ class NagVisMapObj extends NagVisStatefulObject {
      *
      * @param		Object		Map object to check
      * @return	Boolean		Permitted/Not permitted
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     private function isPermitted($OBJ) {
         global $AUTHORISATION;
@@ -516,7 +516,7 @@ class NagVisMapObj extends NagVisStatefulObject {
      *
      * Fetches the summary state of the map object and all members/childs
      *
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     private function fetchSummaryState() {
         // Get summary state of this object from single objects

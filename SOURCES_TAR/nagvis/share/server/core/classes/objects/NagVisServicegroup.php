@@ -4,7 +4,7 @@
  * NagVisServicegroup.php - Class of a Servicegroup in NagVis with all necessary
  *                  information which belong to the object handling in NagVis
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -141,15 +141,15 @@ class NagVisServicegroup extends NagVisStatefulObject {
             }
         }
 
-        
+
         // FIXME: Recode mergeSummaryOutput method
         $this->mergeSummaryOutput($arrServiceStates, l('services'));
 
         // Fallback for groups without members
         if($iSumCount == 0) {
             $this->sum[OUTPUT] = l('The servicegroup "[GROUP]" has no members or does not exist (Backend: [BACKEND]).',
-                                                                                        Array('GROUP' => $this->getName(),
-                                                                                              'BACKEND' => $this->backend_id));
+                                                Array('GROUP' => $this->getName(),
+                                                      'BACKEND' => implode(', ', $this->backend_id)));
         }
     }
 

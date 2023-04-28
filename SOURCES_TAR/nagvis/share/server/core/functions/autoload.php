@@ -3,7 +3,7 @@
  *
  * autoload.php - Class for defining the autoload method for NagVis
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -27,7 +27,7 @@
  * problem with other autoloaders from external code
  *
  * @param   String  Name of the requested class
- * @author 	Lars Michelsen <lars@vertical-visions.de>
+ * @author 	Lars Michelsen <lm@larsmichelsen.com>
  */
 function NagVisAutoload($sClass) {
 	if(substr($sClass, 0, 8) === 'Frontend' 

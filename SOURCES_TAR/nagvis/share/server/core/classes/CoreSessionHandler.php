@@ -3,7 +3,7 @@
  *
  * CoreSessionHandler.php - Class to handle PHP session data
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -26,7 +26,7 @@
  * Class for handlin the PHP sessions. The sessions are used to store
  * information between loading different pages.
  *
- * @author Lars Michelsen <lars@vertical-visions.de>
+ * @author Lars Michelsen <lm@larsmichelsen.com>
  */
 class CoreSessionHandler {
 

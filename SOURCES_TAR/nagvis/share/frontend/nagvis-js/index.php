@@ -3,7 +3,7 @@
  *
  * index.php - Main page of NagVis
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -53,7 +53,12 @@ try {
     require('../../server/core/functions/index.php');
     exit(0);
 } catch(NagVisException $e) {
-    echo new FrontendMessage($e->getMessage());
+    $VIEW = new ViewError();
+
+    if (isset($MODULE) && is_a($MODULE, "FrontendModMap"))
+        echo $VIEW->parseWithMap($e, $MODULE->getObject());
+    else
+        echo $VIEW->parse($e);
 }
 
 ?>

@@ -3,7 +3,7 @@
  *
  * NagVisContextMenu.php - Class for handling the context menus
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -23,7 +23,7 @@
  *****************************************************************************/
 
 /**
- * @author	Lars Michelsen <lars@vertical-visions.de>
+ * @author	Lars Michelsen <lm@larsmichelsen.com>
  */
 class NagVisContextMenu {
     private $CORE;
@@ -40,7 +40,7 @@ class NagVisContextMenu {
      * Class Constructor
      *
      * @param 	GlobalCore 	$CORE
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function __construct($CORE, $templateName, $OBJ = NULL) {
         $this->CORE = $CORE;
@@ -79,7 +79,7 @@ class NagVisContextMenu {
      * Reads the contents of the template file
      *
      * @return	Boolean		Result
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     function readTemplate() {
         if($this->checkTemplateReadable(1)) {
@@ -95,7 +95,7 @@ class NagVisContextMenu {
      *
      * Replaces static macros like paths and language strings in template code
      *
-     * @author  Lars Michelsen <lars@vertical-visions.de>
+     * @author  Lars Michelsen <lm@larsmichelsen.com>
      */
     private function replaceStaticMacros() {
         // Replace the static macros (language, paths)
@@ -137,9 +137,6 @@ class NagVisContextMenu {
         if(strpos($this->code,'[lang_delete]') !== FALSE)
             $this->code = str_replace('[lang_delete]', l('Delete object'), $this->code);
 
-        if(strpos($this->code,'[lang_delete_confirm]') !== FALSE)
-            $this->code = str_replace('[lang_delete_confirm]', l('Really delete the object?'), $this->code);
-
         if(strpos($this->code,'[lang_toggle_line_mid]') !== FALSE)
             $this->code = str_replace('[lang_toggle_line_mid]', l('Lock/Unlock line middle'), $this->code);
 
@@ -174,13 +171,27 @@ class NagVisContextMenu {
         if(strpos($this->code,'[lang_action_https]') !== FALSE) {
             $this->code = str_replace('[lang_action_https]', l('Connect (HTTPS)'), $this->code);
         }
+
+        $action_urls = array("host_downtime_url", "host_ack_url",
+                             "service_downtime_url", "service_ack_url");
+
+        foreach ($action_urls as $param) {
+            if (cfg('defaults', $param) != "") {
+                if(strpos($this->code,'['.$param.']') !== FALSE) {
+                    $this->code = str_replace('['.$param.']', cfg('defaults', $param), $this->code);
+                }
+            } else {
+                $this->code = preg_replace('/<!-- BEGIN has_'.$param.' -->.*?<!-- END has_'.$param.' -->/ms',
+                                           '', $this->code);
+            }
+        }
     }
 
     /**
      * Print the HTML code
      *
      * return   String  HTML Code
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function __toString () {
         return $this->code;
@@ -193,7 +204,7 @@ class NagVisContextMenu {
      *
      * @param		Boolean		Switch for enabling/disabling error messages
      * @return	Boolean		Check Result
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     private function checkTemplateReadable($printErr) {
         return GlobalCore::getInstance()->checkReadable($this->pathTemplateFile, $printErr);
@@ -206,7 +217,7 @@ class NagVisContextMenu {
      *
      * @param		Boolean		Switch for enabling/disabling error messages
      * @return	Boolean		Check Result
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     private function checkTemplateExists($printErr) {
         return GlobalCore::getInstance()->checkExisting($this->pathTemplateFile, $printErr);

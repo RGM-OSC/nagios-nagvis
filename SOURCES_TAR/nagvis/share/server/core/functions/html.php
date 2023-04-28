@@ -1,6 +1,6 @@
 <?php
 /*****************************************************************************
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -41,25 +41,16 @@ function req($name, $default = null) {
     return isset($_REQUEST[$name]) ? $_REQUEST[$name] : $default;
 }
 
+function has_var($key) {
+    return isset($_REQUEST[$key]);
+}
+
 /**
  * FORM HANDLING
  */
 
 $form_keys   = array();
-$form_vars   = array();
 $form_errors = array();
-
-function set_form_vars($a) {
-    global $form_vars;
-    foreach ($a AS $k => $v) {
-        $form_vars[$k] = $v;
-    }
-}
-
-function form_var($name, $default = null) {
-    global $form_vars;
-    return isset($form_vars[$name]) ? $form_vars[$name] : $default;
-}
 
 function get_checkbox($key, $default = null) {
     return (bool)req($key, $default);
@@ -70,9 +61,21 @@ function form_error($field, $msg) {
     $form_errors[$field] = $msg;
 }
 
+// Special form of form errors: Are not displayed at the start of
+// the form becaus they occur during rendering of the fields. Make
+// the message part an array in this case.
+function form_render_error($field, $msg) {
+    form_error($field, array(false, $msg));
+}
+
 function get_error($key) {
     global $form_errors;
-    return isset($form_errors[$key]) ? $form_errors[$key] : array();
+    return isset($form_errors[$key]) ? $form_errors[$key] : null;
+}
+
+function has_form_error($name) {
+    global $form_errors, $form_name;
+    return (!submitted() || submitted($form_name)) && isset($form_errors[$name]);
 }
 
 function success($msg) {
@@ -101,13 +104,26 @@ function is_action() {
     return (submitted() || (bool)get('_action')) && post('_update', '0') == '0';
 }
 
+function is_update() {
+    return post('_update', '0') == '1';
+}
+
 function js($code) {
     echo '<script>'.$code.'</script>'.N;
 }
 
+function show_form_render_error($name) {
+    // only display form rendering errors here
+    if (has_form_error($name)) {
+        $err = get_error($name);
+        if (is_array($err))
+            error($err[1]);
+    }
+}
+
 // Starts a HTML form which is submitted (and can be updated) via AJAX call
 function js_form_start($name) {
-    form_start($name, 'javascript:submitFrontendForm2(\''.cfg('paths', 'htmlbase')
+    form_start($name, 'javascript:submitForm(\''.cfg('paths', 'htmlbase')
                      .'/server/core/ajax_handler.php?mod='.$_REQUEST['mod']
                      .'&act='.$_REQUEST['act'].'\', \''.$name.'\');');
 }
@@ -134,7 +150,7 @@ function form_start($name, $target, $type = 'POST', $multipart = false) {
     echo '<form id="'.$name.'" name="'.$name.'" action="'.escape_html($target).'" '
         .'method="'.$type.'"'.$multipart.'>'.N;
 
-    if (submitted($form_name))
+    if (submitted($form_name) || !submitted())
         foreach ($form_errors AS $field => $message)
             error($message);
 
@@ -143,6 +159,7 @@ function form_start($name, $target, $type = 'POST', $multipart = false) {
 }
 
 function form_end($keep_context=true) {
+    global $form_name;
     if ($keep_context)
         hidden_vars();
     echo '</form>'.N;
@@ -151,12 +168,21 @@ function form_end($keep_context=true) {
 // Adds all remaining vars we got as $_POST/$_GET which have not been added to
 // this form yet to keep the current variable context accross the single requests.
 function hidden_vars() {
-    global $form_keys;
+    global $form_keys, $form_name;
+    //if (submitted($form_name) || !submitted()) {
     foreach ($_REQUEST AS $key => $val) {
-        if (!isset($form_keys[$key])) {
-            hidden($key, $val);
+        // $_REQUEST might contain $_COOKIES. Skip these vars.
+        if (!isset($form_keys[$key]) && !isset($_COOKIE[$key])) {
+            if (is_array($val)) {
+                foreach($val AS $val_element) {
+                    hidden($key."[]", $val_element);
+                }
+            } else {
+                hidden($key, $val);
+            }
         }
     }
+    //}
 }
 
 function hidden($name, $default = '') {
@@ -172,24 +198,27 @@ function radio($name, $value, $checked = false) {
     echo '<input type="radio" name="'.$name.'" value="'.$value.'"'.$checked.' />';
 }
 
-function field($type, $name, $default = '', $class = '', $onclick = '', $style = '') {
-    global $form_errors, $form_keys, $form_name;
+function field($type, $name, $default = '', $class = '', $onclick = '', $style = '', $id = null) {
+    global $form_keys, $form_name;
     $form_keys[$name] = true;
 
-    if (submitted($form_name) && isset($form_errors[$name])) {
+    if (has_form_error($name))
         $class .= ' err';
-    }
 
     if(trim($class))
         $class = ' class="'.trim($class).'"';
 
-    if (submitted($form_name))
-        $default = post($name, form_var($name, $default));
+    if (submitted($form_name)) {
+        if ($type == 'checkbox')
+            $default = get_checkbox($name, $default);
+        else
+            $default = post($name, $default);
+    }
 
     $value = '';
     if ($default != '') {
         if($type == 'checkbox') {
-            if($default == '1') {
+            if ($default === true) {
                 $value = ' value="1" checked="yes"';
             } else {
                 $value = ' value="1"';
@@ -205,15 +234,20 @@ function field($type, $name, $default = '', $class = '', $onclick = '', $style =
     if($style != '')
         $style = ' style="'.$style.'"';
 
-    echo '<input id="'.$name.'" type="'.$type.'" name="'.$name.'"'.$value.$class.$onclick.$style.' />'.N;
+    if ($id === null)
+        $id = $name;
+
+    echo '<input id="'.$id.'" type="'.$type.'" name="'.$name.'"'.$value.$class.$onclick.$style.' />'.N;
+
+    show_form_render_error($name);
 }
 
 function checkbox($name, $default = '', $class = '', $onclick = '') {
     field('checkbox', $name, $default, $class, $onclick);
 }
 
-function input($name, $default = '', $class = '', $style = '') {
-    field('text', $name, $default, $class, '', $style);
+function input($name, $default = '', $class = '', $style = '', $id = null) {
+    field('text', $name, $default, $class, '', $style, $id);
 }
 
 function password($name, $default = '', $class = '') {
@@ -221,13 +255,12 @@ function password($name, $default = '', $class = '') {
 }
 
 function textarea($name, $default = '', $class = '', $style = '') {
-    global $form_errors, $form_keys, $form_name;
+    global $form_keys, $form_name;
     $form_keys['very_important'] = true;
 
     $err_class = '';
-    if (submitted($form_name) && isset($form_errors[$name])) {
+    if (has_form_error($name))
         $err_class = ' err';
-    }
 
     if($class != '' || $err_class != '')
         $class = ' class="'.$class.$err_class.'"';
@@ -236,25 +269,38 @@ function textarea($name, $default = '', $class = '', $style = '') {
         $style = ' style="'.$style.'"';
 
     if (submitted($form_name))
-        $default = post($name, form_var($name, $default));
+        $default = post($name, $default);
 
-    echo '<textarea name="'.$name.'"'.$class.$style.'>'.escape_html($default).'</textarea>'.N;
+    // plain <textarea>
+    echo '<textarea id="textarea_'.$name.'" name="'.$name.'"'.$class.$style.'>'.escape_html($default).'</textarea>'.N;
+
+    // better <textarea>
+    echo '
+    <script>
+        let script = document.createElement("script");
+        script.src = "js/ExtNicEdit.js"
+        document.head.appendChild(script);
+        script.onload = function() {
+            new nicEditor({fullPanel : true}).panelInstance("textarea_'.$name.'")
+        };
+    </script>
+    ';
+
 }
 
-function select($name, $options, $default = '', $onchange = '', $style = '') {
-    global $form_errors, $form_keys, $form_name;
+function select($name, $options, $default = '', $onchange = '', $style = '', $size = null) {
+    global $form_keys, $form_name;
     $form_keys[$name] = true;
 
     $class = '';
-    if (submitted($form_name) && isset($form_errors[$name])) {
+    if (has_form_error($name))
         $class .= ' err';
-    }
 
     if(trim($class))
         $class = ' class="'.trim($class).'"';
 
-    if (submitted($form_name))
-        $default = post($name, form_var($name, $default));
+    if (submitted($form_name) || !submitted()) // this or none submitted
+        $default = post($name, $default);
 
     if($onchange != '')
         $onchange = ' onchange="'.$onchange.'"';
@@ -262,37 +308,64 @@ function select($name, $options, $default = '', $onchange = '', $style = '') {
     if($style != '')
         $style = ' style="'.$style.'"';
 
-    $ret = '<select name="'.$name.'"'.$onchange.$class.$style.'>'.N;
+    // for sequential arrays use the values for the keys and the values
+    if (array_keys($options) === range(0, count($options) - 1)) {
+        $new_options = array();
+        foreach ($options as $values)
+            $new_options[$values] = $values;
+        $options = $new_options;
+    }
+
+    $multiple = '';
+    if ($size !== null) {
+        $multiple = ' size="'.$size.'" multiple';
+    }
+
+    $ret = '<select id="'.$name.'" name="'.$name.'"'.$onchange.$class.$style.$multiple.'>'.N;
     foreach($options AS $value => $display) {
         $select = '';
         if($value == $default)
-            $select = 'selected';
-        $ret .= '<option value="'.$value.'" '.$select.'>'.$display.'</option>'.N;
+            $select = ' selected';
+        $ret .= '<option value="'.$value.'"'.$select.'>'.$display.'</option>'.N;
     }
     $ret .= '</select>'.N;
     echo $ret;
+
+    show_form_render_error($name);
 }
 
-function submit($label, $class = '') {
+function submit($label, $class = '', $name = '_submit') {
     global $form_keys;
     $form_keys['_submit'] = true;
     if ($class)
         $class = ' '.$class;
-    echo '<input class="submit'.$class.'" type="submit" name="_submit" id="_submit" value="'.$label.'" />'.N;
+    echo '<input class="submit'.$class.'" type="submit" name="'.$name.'" id="'.$name.'" value="'.$label.'" />'.N;
+}
+
+function button($name, $label, $onclick) {
+    global $form_keys;
+    $form_keys[$name] = true;
+    echo '<input type="button" name="'.$name.'" id="'.$name.'" value="'.$label.'" onclick="'.$onclick.'" />'.N;
 }
 
 function upload($name) {
-    global $form_keys, $form_errors, $form_name;
+    global $form_keys, $form_name;
     $form_keys[$name] = true;
 
     $class = '';
-    if (submitted($form_name) && isset($form_errors[$name])) {
+    if (has_form_error($name))
         $class .= ' err';
-    }
+
     if(trim($class))
         $class = ' class="'.$class.'"';
 
     echo '<input type="file" name="'.$name.'"'.$class.' />'.N;
+}
+
+function do_http_redirect($url = null) {
+    if ($url === null)
+        $url = $_SERVER['REQUEST_URI'];
+    header('Location: '.$url);
 }
 
 function reload($url, $sec) {
@@ -300,6 +373,41 @@ function reload($url, $sec) {
         js('setTimeout(function() {location.reload();}, '.$sec.'*1000);');
     else
         js('setTimeout(function() {location.href=\''.$url.'\';}, '.$sec.'*1000);');
+}
+
+function focus($name) {
+    js('try{document.getElementById(\''.$name.'\').focus();}catch(e){}');
+}
+
+function scroll_up() {
+    js('document.body.scrollTop = document.documentElement.scrollTop = 0;');
+}
+
+function get_open_section($default) {
+    return post('sec', $default);
+}
+
+function render_section_navigation($open, $sections) {
+    hidden('sec', $open);
+
+    // first render navigation
+    echo '<ul class="nav" id="nav">';
+    foreach ($sections AS $sec => $title) {
+        $class = $open == $sec ? ' class="active"' : '';
+        echo '<li id="nav_'.$sec.'" '.$class.'>';
+        echo '<a href="javascript:toggle_section(\''.$sec.'\')">';
+        echo $title.'</a></li>';
+    }
+    echo '</ul>';
+}
+
+function render_section_start($sec, $open) {
+    $display = $sec != $open ? 'display:none' : '';
+    echo '<div id="sec_'.$sec.'" class="section" style="'.$display.'">';
+}
+
+function render_section_end() {
+    echo '</div>';
 }
 
 ?>

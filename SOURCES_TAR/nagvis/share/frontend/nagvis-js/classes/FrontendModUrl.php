@@ -3,7 +3,7 @@
  *
  * FrontendModUrl.php - Module for handling external urls in NagVis
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -23,7 +23,7 @@
  *****************************************************************************/
 
 /**
- * @author	Lars Michelsen <lars@vertical-visions.de>
+ * @author	Lars Michelsen <lm@larsmichelsen.com>
  */
 class FrontendModUrl extends FrontendModule {
     private $url = '';
@@ -31,6 +31,7 @@ class FrontendModUrl extends FrontendModule {
     private $rotationStep = '';
 
     public function __construct(GlobalCore $CORE) {
+        $this->sName = 'Url';
         $this->CORE = $CORE;
 
         // Parse the view specific options
@@ -75,7 +76,7 @@ class FrontendModUrl extends FrontendModule {
         // Need to parse the header menu?
         if(cfg('index','headermenu')) {
             // Parse the header menu
-            $HEADER = new NagVisHeaderMenu($this->UHANDLER, cfg('index', 'headertemplate'));
+            $HEADER = new NagVisHeaderMenu(cfg('index', 'headertemplate'));
 
             // Put rotation information to header menu
             if($this->rotation != '') {

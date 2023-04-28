@@ -1,6 +1,6 @@
 <?php
 /*****************************************************************************
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -27,10 +27,11 @@ class ViewManageMaps {
         echo '<h2>'.l('Create Map').'</h2>';
 
         $map_types = array(
-            'map'     => l('Regular map'),
-            'geomap'  => l('Geographical map'),
-            'automap' => l('Automap based on parent/child relations'),
-            'dynmap'  => l('Dynamic map'),
+            'map'      => l('Regular map'),
+            'worldmap' => l('Geographical map (interactive)'),
+            'geomap'   => l('Geographical map (non interactive)'),
+            'automap'  => l('Automap based on parent/child relations'),
+            'dynmap'   => l('Dynamic map'),
         );
 
         if (is_action() && post('mode') == 'create') {
@@ -41,7 +42,7 @@ class ViewManageMaps {
 
                 if (count($CORE->getAvailableMaps('/^'.preg_quote($name).'$/')) > 0)
                     throw new FieldInputError('name', l('A map with this name already exists'));
-            
+
                 if (!preg_match(MATCH_MAP_NAME, $name))
                     throw new FieldInputError('name', l('This is not a valid map name (need to match [M])',
                                                                     array('M' => MATCH_MAP_NAME)));
@@ -67,7 +68,9 @@ class ViewManageMaps {
                 if ($type != 'map')
                     $global['sources'] = array($type);
 
-                $MAPCFG->addElement('global', $global, true, 0);
+                $MAPCFG->addElement('global', $global, false, 0);
+                $MAPCFG->handleSources('init_map');
+                $MAPCFG->storeUpdateElement(0);
 
                 success(l('The map has been created. Changing to the new map...'));
                 reload('index.php?mod=Map&act=view&show='.$name, 1);
@@ -235,8 +238,6 @@ class ViewManageMaps {
                 $cur_map = post('current_map');
                 if ($cur_map && $cur_map == $name)
                     reload('index.php', 1); // change to overview page when current map has been deleted
-                else
-                    reload(null, 1);
             } catch (FieldInputError $e) {
                 form_error($e->field, $e->msg);
             } catch (Exception $e) {
@@ -374,7 +375,6 @@ class ViewManageMaps {
     }
 
     public function parse() {
-        global $CORE;
         ob_start();
 
         $this->createForm();

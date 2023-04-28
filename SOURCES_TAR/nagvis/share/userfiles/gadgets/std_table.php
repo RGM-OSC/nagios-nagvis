@@ -3,7 +3,7 @@
  *
  * std_table.php - Renders a table showing host and service object info
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -31,6 +31,11 @@ $table_colors['DOWN']    = "#FF0000";
 $table_colors['ERROR']   = "#3498db";
 $table_colors['HEADER']  = "#34495e";
 $table_colors['EMPTY']   = "#eff0f1";
+
+if (!preg_match('/^(?:[a-z0-9]+)$/i', $_GET['object_id'])) {
+    echo "ERROR: Invalid object_id given.";
+    exit(1);
+}
 
 // Define Gadget UNIQUE name
 $ident = $_GET['object_id'] . '-gadget';

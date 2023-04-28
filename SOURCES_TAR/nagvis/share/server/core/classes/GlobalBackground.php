@@ -3,7 +3,7 @@
  *
  * GlobalBackground.php - Class for global background image handling
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -23,7 +23,7 @@
  *****************************************************************************/
 
 /**
- * @author	Lars Michelsen <lars@vertical-visions.de>
+ * @author	Lars Michelsen <lm@larsmichelsen.com>
  */
 class GlobalBackground {
     protected $image;
@@ -41,7 +41,7 @@ class GlobalBackground {
      * Gets the name of the image file
      *
      * @return	String File Name
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     private function getFileName() {
         return $this->image;
@@ -51,7 +51,7 @@ class GlobalBackground {
      * Gets the locationtype of the file
      *
      * @return	String File Name
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function getFileType() {
         return $this->type;
@@ -61,7 +61,7 @@ class GlobalBackground {
      * Fetches the path and saves it on initial load
      *
      * @return	String File Name
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     private function fetchPath() {
         if($this->getFileName() != '' && $this->getFileName() != 'none') {
@@ -90,7 +90,7 @@ class GlobalBackground {
      *
      * @param   Boolean Get web path or alternatively the physical path
      * @return  String  HTML Path to background file
-     * @author  Lars Michelsen <lars@vertical-visions.de>
+     * @author  Lars Michelsen <lm@larsmichelsen.com>
      */
     public function getFile($bWebPath = true) {
         if($bWebPath)
@@ -104,7 +104,7 @@ class GlobalBackground {
      *
      * @param	Boolean $printErr
      * @return	Boolean	Is Successful?
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     protected function checkFileExists($printErr) {
         global $CORE;
@@ -116,7 +116,7 @@ class GlobalBackground {
      *
      * @param	Boolean $printErr
      * @return	Boolean	Is Successful?
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     protected function checkFileReadable($printErr) {
         global $CORE;
@@ -128,7 +128,7 @@ class GlobalBackground {
      *
      * @param	Boolean $printErr
      * @return	Boolean	Is Successful?
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     protected function checkFileWriteable($printErr) {
         global $CORE;
@@ -140,7 +140,7 @@ class GlobalBackground {
      *
      * @param	Boolean $printErr
      * @return	Boolean	Is Successful?
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     protected function checkFolderWriteable($printErr) {
         global $CORE;
@@ -148,50 +148,11 @@ class GlobalBackground {
     }
 
     /**
-    * Creates a simple map image
-    *
-    * @param	Boolean	$printErr
-    * @return	Boolean	Is Check Successful?
-    * @author	Lars Michelsen <lars@vertical-visions.de>
-    */
-    function createImage($color, $width, $height) {
-        $this->path = path('sys', '', 'backgrounds') . '/' . $this->image;
-        if(!$this->checkFileExists(0)) {
-            if($this->checkFolderWriteable(1)) {
-                $image = imagecreatetruecolor($width, $height);
-
-                // get rgb color from hexcode
-                $color = str_replace('#','',$color);
-                $int = hexdec($color);
-                $r = 0xFF & ($int >> 0x10);
-                $g = 0xFF & ($int >> 0x8);
-                $b = 0xFF & $int;
-
-                $bgColor = imagecolorallocate($image, $r, $g, $b);
-                imagefill($image, 0, 0, $bgColor);
-                imagepng($image, $this->path);
-                imagedestroy($image);
-
-                return TRUE;
-            } else {
-                // No need for error handling here
-                return FALSE;
-            }
-        } else {
-            if($printErr) {
-                throw new NagVisException(l('imageAlreadyExists',
-                                            Array('IMAGE' => $this->path)));
-            }
-            return FALSE;
-        }
-    }
-
-    /**
      * Deletes the map image
      *
      * @param	Boolean	$printErr
      * @return	Boolean	Is Check Successful?
-     * @author	Lars Michelsen <lars@vertical-visions.de>
+     * @author	Lars Michelsen <lm@larsmichelsen.com>
      */
     function deleteImage($printErr=1) {
         if($this->checkFolderWriteable($printErr) && $this->checkFileWriteable($printErr)) {

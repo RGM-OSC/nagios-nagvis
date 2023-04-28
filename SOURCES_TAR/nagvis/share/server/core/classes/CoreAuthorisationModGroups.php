@@ -4,7 +4,7 @@
  * CoreAuthorisationModGroups.php - Authorsiation module based on the
  *                                     permissions granted in Check_MK Groups
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -107,6 +107,7 @@ class CoreAuthorisationModGroups extends CoreAuthorisationModule {
             array('General',   'getHoverTemplate',   '*'),
             array('User',      'setOption',          '*'),
             array('Multisite', 'getMaps',            '*'),
+            array('Auth',      'logout',             '*'),
         );
 
         if(!isset($this->user_groups[$username]))

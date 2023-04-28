@@ -2,7 +2,7 @@
  *
  * popupWindow.js - Handles javascript popup windows in NagVis
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -22,7 +22,7 @@
  *****************************************************************************/
 
 /**
- * @author	Lars Michelsen <lars@vertical-visions.de>
+ * @author	Lars Michelsen <lm@larsmichelsen.com>
  */
 
 var popupNN6 = document.getElementById && !document.all;
@@ -37,7 +37,7 @@ var dragObj = null;
  *
  * @param   Object   Event object
  * @return  Boolean
- * @author	Lars Michelsen <lars@vertical-visions.de>
+ * @author	Lars Michelsen <lm@larsmichelsen.com>
  */
 function movemouse(e) {
  if(bDragging) {
@@ -57,7 +57,7 @@ function movemouse(e) {
  *
  * @param   Object   Event object
  * @return  Boolean
- * @author	Lars Michelsen <lars@vertical-visions.de>
+ * @author	Lars Michelsen <lm@larsmichelsen.com>
  */
 function selectmouse(e) {
     bDragging = true;
@@ -85,17 +85,8 @@ function popupWindowClose() {
     // a user closes the window. All eventual open color pickers are opened
     // within popup windows. So it is safe to close all color pickers when
     // closing a window
-    if (jscolor.picker)
+    if (jscolor.picker && jscolor.picker.owner)
         jscolor.picker.owner.hidePicker();
-}
-
-function popupWindowRefresh() {
-    var oWindow = document.getElementById('popupWindow');
-
-    if(oWindow) {
-        popupWindowPutContent(getSyncRequest(oWindow.url, false, false));
-        oWindow = null;
-    }
 }
 
 function popupWindowPutContent(oContent) {
@@ -110,58 +101,43 @@ function popupWindowPutContent(oContent) {
     }
 }
 
-/**
- * popupWindow()
- *
- * Creates a javascript dialog
- *
- * @param   String   Window title
- * @param   Object   Object containing the contents
- * @return  Boolean
- * @author	Lars Michelsen <lars@vertical-visions.de>
- */
-function popupWindow(title, oContent, openOnMousePosition, sWidth) {
+// Creates a javascript dialog
+function popupWindow(title, oContent, sWidth, closable) {
     if(oContent === null || oContent.code === null)
         return false;
 
-    if(typeof openOnMousePosition === 'undefined')
-        openOnMousePosition = true;
-
-    if(typeof sWidth === 'undefined' || sWidth === null)
-        sWidth = '';
+    if (typeof closable === 'undefined')
+        closable = true;
 
     // Maybe some other window is still open. Close it now
     popupWindowClose();
 
     // Default window position
-    var posX = getScrollLeft() + 100;
-    var posY = getScrollTop() + 20;
-
-    // Detect the current mouse position and create the window there
-    if(openOnMousePosition) {
-        //FIXME: Maybe code this in the future
-    }
+    var posX = getScrollLeft() + (pageWidth()/2 - sWidth/2);
+    var posY = getScrollTop() + 50;
 
     var oContainerDiv = document.createElement('div');
     oContainerDiv.setAttribute('id', 'popupWindow');
-    oContainerDiv.style.position = 'absolute';
     oContainerDiv.style.left = posX+'px';
     oContainerDiv.style.top = posY+'px';
+    oContainerDiv.style.width = sWidth+'px';
 
     oContainerDiv.url = oContent.url;
 
     // Render the close button
-    var oClose = document.createElement('div');
-    oClose.className = 'close';
+    if (closable) {
+        var oClose = document.createElement('div');
+        oClose.className = 'close';
 
-    oClose.onclick = function() {
-        popupWindowClose();
-        return false;
-    };
+        oClose.onclick = function() {
+            popupWindowClose();
+            return false;
+        };
 
-    oClose.appendChild(document.createTextNode('x'));
-    oContainerDiv.appendChild(oClose);
-    oClose = null;
+        oClose.appendChild(document.createTextNode('x'));
+        oContainerDiv.appendChild(oClose);
+        oClose = null;
+    }
 
     // Render the window title
     var oTitle = document.createElement('h1');
@@ -176,39 +152,14 @@ function popupWindow(title, oContent, openOnMousePosition, sWidth) {
     oContainerDiv.appendChild(oTitle);
     oTitle = null;
 
-    var oTable = document.createElement('table');
-    oTable.setAttribute('id', 'popupWindowMaster');
-
-    // When width is not set the window should be auto adjusted
-    if(sWidth !== '') {
-        oContainerDiv.style.width = sWidth+'px';
-        oTable.style.width = sWidth+'px';
-    }
-
-    var oTbody = document.createElement('tbody');
-
-    oRow = document.createElement('tr');
-
-    oCell = document.createElement('td');
-    oCell.setAttribute('id', 'popupWindowContent');
-    oCell.colSpan = '2';
-
-    oRow.appendChild(oCell);
-    oCell = null;
-
-    oTbody.appendChild(oRow);
-    oRow = null;
-
-    oTable.appendChild(oTbody);
-    oTbody = null;
-
-    oContainerDiv.appendChild(oTable);
-    oTable = null;
+    var content = document.createElement('div');
+    content.setAttribute('id', 'popupWindowContent');
+    oContainerDiv.appendChild(content);
+    content = null;
 
     document.body.appendChild(oContainerDiv);
-    oContainerDiv = null;
 
     popupWindowPutContent(oContent);
 
-    return false;
+    return oContainerDiv;
 }

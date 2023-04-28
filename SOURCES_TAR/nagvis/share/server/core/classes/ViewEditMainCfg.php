@@ -3,7 +3,7 @@
  *
  * ViewEditMainCfg.php - Class to render the main configuration edit dialog
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -86,23 +86,17 @@ class ViewEditMainCfg {
             }
         }
 
-        $open = isset($_POST['sec']) ? $_POST['sec'] : 'global'; // default open section
-        hidden('sec', $open);
-
-        // first render navigation
-        echo '<ul class="nav" id="nav">';
-        foreach ($_MAINCFG->getValidConfig() AS $sec => $arr) {
-            if (!preg_match($this->exclude_pattern, $sec)) {
-                $class = $open == $sec ? ' class="active"' : '';
-                echo '<li id="nav_'.$sec.'" '.$class.'><a href="javascript:toggle_maincfg_section(\''.$sec.'\')">'.$_MAINCFG->getSectionTitle($sec).'</a></li>';
-            }
-        }
-        echo '</ul>';
-
+        $sections = array();
         foreach ($_MAINCFG->getValidConfig() AS $sec => $arr) {
             if (!preg_match($this->exclude_pattern, $sec))
-                $this->renderSection($sec, $open);
+                $sections[$sec] = $_MAINCFG->getSectionTitle($sec);
         }
+
+        $open = get_open_section('global');
+        render_section_navigation($open, $sections);
+
+        foreach ($sections AS $sec => $title)
+            $this->renderSection($sec, $open);
 
         submit(l('save'));
         form_end();
@@ -126,8 +120,8 @@ class ViewEditMainCfg {
     private function renderSection($sec, $open) {
         global $_MAINCFG, $CORE;
 
-        $display = $sec != $open ? 'display:none' : '';
-        echo '<table id="sec_'.$sec.'" class="mytable section" style="'.$display.'">';
+        render_section_start($sec, $open);
+        echo '<table class="mytable">';
         foreach ($_MAINCFG->getValidObjectType($sec) AS $key => $spec) {
             // Skip deprecated options
             if (isset($spec['deprecated']) && $spec['deprecated'] == 1)
@@ -189,7 +183,8 @@ class ViewEditMainCfg {
                         echo l('No');
                 break;
                 default:
-                    echo escape_html($def_val);
+                    if ($def_val !== null)
+                        echo escape_html($def_val);
             }
             echo '</div>';
 
@@ -204,6 +199,7 @@ class ViewEditMainCfg {
             echo '</tr>';
         }
         echo '</table>';
+        render_section_end();
     }
 
     private function renderInput($sec, $key, $spec, $def_val, $cur_val) {
@@ -216,7 +212,7 @@ class ViewEditMainCfg {
 
         $on_change = '';
         if($_MAINCFG->hasDependants($sec, $key))
-            $on_change = ' onchange="updateForm()"';
+            $on_change = ' onchange="updateForm(this.form)"';
         
         switch ($field_type) {
             case 'dropdown':
@@ -248,6 +244,9 @@ class ViewEditMainCfg {
         
                 echo '<script>document.edit_config.elements[\''.$sec.'_'.$key.'\'].value = \''.$cur_val.'\';</script>';
             break;
+            case 'color':
+                $this->colorSelect($sec, $key, $cur_val);
+            break;
             case 'text':
                 echo '<input id="'.$sec.'_'.$key.'" type="text" name="'.$sec.'_'.$key.'" value="'.$cur_val.'">';
             break;
@@ -255,6 +254,18 @@ class ViewEditMainCfg {
         
         if(isset($spec['locked']) && $spec['locked'] == 1)
             echo "<script>document.edit_config.elements['".$sec."_".$key."'].disabled=true;</script>";
+    }
+
+    private function colorSelect($sec, $key, $value) {
+        $propname = $sec."_".$key;
+        echo '<div id="'.$propname.'" class=picker>';
+        input($propname, $value, '', '', $propname . '_inp');
+        echo '<a href="javascript:void(0);" onClick="togglePicker(\''.$propname.'_inp\');">';
+        echo '<img src="'.cfg('paths', 'htmlimages').'internal/picker.png" alt="'.l('Color select').'" />';
+        echo '</a></div>';
+        js('var o = document.getElementById(\''.$propname.'_inp\');'
+          .'o.color = new jscolor.color(o, {pickerOnfocus:false,adjust:false,hash:true});'
+          .'o = null;');
     }
 }
 ?>

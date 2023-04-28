@@ -2,7 +2,7 @@
  *
  * tmpl.default.js - javascript for default header template
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -22,7 +22,7 @@
  *****************************************************************************/
 
 /**
- * @author	Lars Michelsen <lars@vertical-visions.de>
+ * @author	Lars Michelsen <lm@larsmichelsen.com>
  *
  * Note: I found some of the functions below (ddMenu*) at several places in
  * the net. So I don't know about the real author and could not add any note here.
@@ -30,13 +30,11 @@
  */
 
 function headerDraw() {
-    scaleView();
-
     if(typeof(oUserProperties) === 'undefined')
         return;
 
     if(typeof(oUserProperties.header) !== 'undefined' && oUserProperties.header === false)
-        headerToggle(false);
+        toggleHeader(false);
 
     addEvent(document, 'mousedown', checkHideMenu);
 }
@@ -60,11 +58,14 @@ function checkHideMenu(event) {
     ddMenuHide();
 }
 
-function headerToggle(store) {
-    var header = document.getElementById('header');
-    var spacer = document.getElementById('headerspacer');
-    var show   = document.getElementById('headershow');
+function toggleHeader(store) {
+    var header  = document.getElementById('header');
+    var spacer  = document.getElementById('headerspacer');
+    var show    = document.getElementById('headershow');
     var state = true;
+
+    // Reset the header height cache
+    g_header_height_cache = null;
 
     if(header.style.display === '') {
         header.style.display = 'none';
@@ -77,8 +78,9 @@ function headerToggle(store) {
         show.style.display   = 'none';
     }
 
-    // Reset the header height cache
-    cacheHeaderHeight    = null;
+    sidebarUpdatePosition();
+    if (g_view)
+        g_view.scaleView();
 
     if(store === true)
         storeUserOption('header', state);
@@ -86,10 +88,6 @@ function headerToggle(store) {
     show   = null;
     spacer = null;
     header = null;
-}
-
-function showMapDropdown() {
-    ddMenu('views');
 }
 
 // Sets/Updates the state of a map in the header menu
@@ -105,10 +103,14 @@ function headerUpdateState(map_conf) {
     var side = document.getElementById('side-state-' + map['name']);
     if (side) {
         side.className = 'statediv s' + map['summary_state'];
+        if (map['summary_problem_has_been_acknowledged'] == 1) {
+            side.className += ' sACK';
+        }
+        if (map['summary_in_downtime'] == 1) {
+            side.className += ' sDOWNTIME';
+        }
         side = null;
     }
-
-    head = null;
 }
 
 open_menus = [];
@@ -116,10 +118,29 @@ open_menus = [];
 // Is called to initialize fetching states for the header/sidebar menu
 function headerUpdateStates() {
     for (var i = 0; i < g_map_names.length; i++) {
-        getAsyncRequest(oGeneralProperties.path_server+'?mod=Overview&act=getObjectStates'
-                        + '&i[]=map-' + escapeUrlValues(g_map_names[i]) + getViewParams(),
-                        false, headerUpdateState);
+        call_ajax(oGeneralProperties.path_server+'?mod=Overview&act=getObjectStates'
+                  + '&i[]=map-' + escapeUrlValues(g_map_names[i]) + getViewParams(), {
+            response_handler: headerUpdateState
+        });
     }
+}
+
+function ddMenuToggle(event, id) {
+    event = event || window.event;
+    var this_open = false
+    for (var i = 0; i < open_menus.length; i++) {
+        if (open_menus[i] == id) {
+            this_open = true;
+            break;
+        }
+    }
+
+    // In any case close all open menus. When the triggered
+    // menu was not open before, then open it up again.
+    ddMenuHide();
+    if (!this_open)
+        ddMenu(id);
+    return preventDefaultEvents(event);
 }
 
 // Hide the given menus instant
@@ -184,6 +205,7 @@ function ddMenu(id, reposition) {
 
 function toggleSidebar(store) {
     var sidebar = document.getElementById('sidebar');
+    var toggle  = document.getElementById('sidetoggle');
     var content = document.getElementById('map');
     var is_overview = false;
     if(content == null) {
@@ -204,6 +226,7 @@ function toggleSidebar(store) {
         } else {
             content.style.marginLeft = '0px';
         }
+        toggle.firstChild.src = oGeneralProperties.path_images + 'internal/sidebar_open.png';
         state = 0;
     } else {
         // open the sidebar
@@ -216,6 +239,9 @@ function toggleSidebar(store) {
         } else {
             content.style.marginLeft = '200px';
         }
+        toggle.firstChild.src = oGeneralProperties.path_images + 'internal/sidebar_close.png';
+
+        sidebarUpdatePosition();
 
         if (oGeneralProperties.header_show_states)
             headerUpdateStates();
@@ -273,6 +299,12 @@ function sidebarDraw() {
     }
 }
 
+function sidebarUpdatePosition() {
+    var sidebar = document.getElementById('sidebar');
+    if (sidebar && sidebarOpen())
+        sidebar.style.top = getHeaderHeight() + 'px';
+}
+
 function sidebarDrawSubtree(node, index) {
     // Check if this node is expanded
     for(var i = 0, len = oUserProperties.sidebarOpenNodes.length; i < len; i++)
@@ -288,10 +320,11 @@ function sidebarToggleSubtree(oTitle) {
     var oList = sidebarGetListByTitle(oTitle);
     var this_id = oTitle.id;
     var state = 1;
+    var openNodes;
     if(oUserProperties.sidebarOpenNodes === '')
-        var openNodes = [];
+        openNodes = [];
     else
-        var openNodes = oUserProperties.sidebarOpenNodes.split(',');
+        openNodes = oUserProperties.sidebarOpenNodes.split(',');
 
     var oListItem = oTitle.parentNode.parentNode;
     if(oList.style.display == 'none' || oList.style.display == '') {

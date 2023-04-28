@@ -4,7 +4,7 @@
  * GlobalBackendmkbi.php - backend class for connecting NagVis directly
  *                             to Check_MK Business Intelligence via JSON
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -46,13 +46,13 @@ class GlobalBackendmkbi implements GlobalBackendInterface {
     );
 
     private static $bi_short_states = Array(
-        'PD' => 'PENDING',
-        'OK' => 'OK',
-        'WA' => 'WARNING',
-        'CR' => 'CRITICAL',
-        'UN' => 'UNKNOWN',
-        'MI' => 'ERROR',
-        'NA' => 'UNREACHABLE',
+        'PD' => -1,
+        'OK' =>  0,
+        'WA' =>  1,
+        'CR' =>  2,
+        'UN' =>  3,
+        'MI' => -2,
+        'NA' =>  4,
     );
 
     // These are the backend local configuration options
@@ -75,6 +75,37 @@ class GlobalBackendmkbi implements GlobalBackendInterface {
             'default'  => '',
             'match'    => MATCH_STRING,
         ),
+        'auth_secret_file' => Array(
+            'must'     => 0,
+            'editable' => 1,
+            'default'  => '',
+            'match'    => MATCH_STRING_PATH,
+        ),
+        'verify_peer' => Array(
+          'must'       => 0,
+          'editable'   => 1,
+          'default'    => 1,
+          'match'      => MATCH_BOOLEAN,
+          'field_type' => 'boolean',
+        ),
+        'verify_depth' => Array(
+            'must'       => 0,
+            'editable'   => 1,
+            'default'    => 3,
+            'match'      => MATCH_INTEGER,
+        ),
+        'ca_path' => Array(
+          'must'      => 0,
+          'editable'  => 1,
+          'default'   => '',
+          'match'     => MATCH_STRING_PATH,
+        ),
+        'timeout' => Array(
+          'must'      => 1,
+          'editable'  => 1,
+          'default'   => 5,
+          'match'     => MATCH_INTEGER,
+        ),
     );
 
     /**
@@ -85,29 +116,60 @@ class GlobalBackendmkbi implements GlobalBackendInterface {
 
         $this->baseUrl = cfg('backend_'.$backendId, 'base_url');
 
-        $httpContext = array( 
+        $httpContext = array(
             'method'     => 'GET',
             'user_agent' => 'NagVis BI Backend',
-            'timeout'    => 5,
+            'timeout'    => cfg('backend_'.$backendId, 'timeout'),
         );
+
+        $sslContext = array();
+
+        if (cfg('backend_'.$backendId, 'verify_peer') == true) {
+            $sslContext = array(
+                'verify_peer'      => true,
+                'verify_peer_name' => false,
+                'verify_depth'     => cfg('backend_'.$backendId, 'verify_depth'),
+            );
+            $ca_path = cfg('backend_'.$backendId, 'ca_path');
+            if ($ca_path) {
+                $sslContext['cafile'] = $ca_path;
+            }
+        } else {
+            $sslContext = array(
+                'verify_peer'      => false,
+                'verify_peer_name' => false,
+            );
+        }
 
         // Always set the HTTP basic auth header
         $username = cfg('backend_'.$backendId, 'auth_user');
-        $secret   = cfg('backend_'.$backendId, 'auth_secret');
+        $secret = $this->getSecret();
         if($username && $secret) {
             $authCred = base64_encode($username.':'.$secret);
             $httpContext['header'] = 'Authorization: Basic '.$authCred."\r\n";
         }
 
-        $this->context = stream_context_create(array('http' => $httpContext));
+        $this->context = stream_context_create(array(
+            'http' => $httpContext,
+            'ssl'  => $sslContext,
+        ));
     }
 
     /**************************************************************************
      * HELPERS
      *************************************************************************/
 
+    private function getSecret() {
+        $secret_file_path = cfg('backend_'.$this->backendId, 'auth_secret_file');
+        if ($secret_file_path)
+            return trim(file_get_contents($secret_file_path));
+        else
+            return cfg('backend_'.$this->backendId, 'auth_secret');
+    }
+
     private function aggrUrl($name) {
-        return $this->baseUrl.'view.py?view_name=aggr_single&aggr_name='.$name.'&po_aggr_expand=1';
+        $html_cgi = cfg('backend_'.$this->backendId, 'htmlcgi');
+        return $html_cgi.'/view.py?view_name=aggr_single&aggr_name='.$name.'&po_aggr_expand=1';
     }
 
     /**
@@ -117,7 +179,7 @@ class GlobalBackendmkbi implements GlobalBackendInterface {
     private function getUrl($params) {
         $url = $this->baseUrl.$params.'&output_format=json';
         $username = cfg('backend_'.$this->backendId, 'auth_user');
-        $secret   = cfg('backend_'.$this->backendId, 'auth_secret');
+        $secret   = $this->getSecret();
         if ($username && $secret)
             $url .= '&_username='.$username.'&_secret='.$secret;
 
@@ -170,7 +232,7 @@ class GlobalBackendmkbi implements GlobalBackendInterface {
      * Returns the identifiers and names of all business processes
      */
     private function getAggregationNames() {
-        $aggregations = $this->getUrl('view.py?view_name=aggr_all_api');
+        $aggregations = $this->getUrl('view.py?view_name=aggr_all_api&expansion_level=0');
         $names = Array();
         foreach($aggregations AS $aggr) {
             $names[$aggr['aggr_name']] = $aggr['aggr_name'];
@@ -186,20 +248,56 @@ class GlobalBackendmkbi implements GlobalBackendInterface {
     }
 
     private function getAggrElements($aggr) {
+        if (is_array($aggr['aggr_treestate']))
+            return $aggr['aggr_treestate']["nodes"];
+        else
+            return $this->getAggrElementsFromString($aggr["aggr_treestate"]);
+    }
+
+    // Be compatible to Check_MK <1.2.9
+    private function getAggrElementsFromString($aggr_treestate) {
         // remove leading/trailing newlines
-        $raw_states = trim($aggr['aggr_treestate']);
+        $raw_states = trim($aggr_treestate);
         // replace multiple newlines with singe ones
         $raw_states = preg_replace("/[\n]+/", "\n", $raw_states);
         $parts = explode("\n", $raw_states);
         array_shift($parts); // Remove first entry, the summary state
         array_shift($parts);
-        return array_chunk($parts, 2);
+        $pairs = array_chunk($parts, 2);
+
+        $elements = array();
+        foreach ($pairs AS $pair) {
+            list($short_state, $title) = $pair;
+
+            if(!isset(GlobalBackendmkbi::$bi_short_states[$short_state]))
+                throw new BackendException(l('Invalid state: "[S]"',
+                          Array('S' => $s)));
+            $bi_state = GlobalBackendmkbi::$bi_short_states[$short_state];
+
+            $element = array(
+                "title"             => $title,
+                "state"             => $bi_state,
+                // unknown infos in old Check_MK versions:
+                "assumed"           => false,
+                "acknowledged"      => false,
+                "in_downtime"       => false,
+                "in_service_period" => false,
+                // Create some kind of default output when aggregation does
+                // not provide any detail output
+                "output"            => l("BI-State is: [S]",
+                   array("S" => GlobalBackendmkbi::$bi_aggr_states[$bi_state])),
+            );
+            $elements[] = $element;
+        }
+
+        return $elements;
     }
 
     private function getAggrCounts($aggr) {
         $c = Array(
             PENDING => Array(
                 'normal'   => 0,
+                'downtime' => 0,
             ),
             OK => Array(
                 'normal'   => 0,
@@ -229,12 +327,13 @@ class GlobalBackendmkbi implements GlobalBackendInterface {
         // Add the single component state counts
         $elements = $this->getAggrElements($aggr);
         foreach ($elements AS $element) {
-            // 0: state short code, 1: element name
-            $s = state_num(GlobalBackendmkbi::$bi_short_states[$element[0]]);
-            if(!isset($c[$s]))
-                throw new BackendException(l('Invalid state: "[S]"',
-                          Array('S' => $s)));
-            $c[$s]['normal']++;
+            $state = $this->getAggrState($element["state"]);
+            if ($element["in_downtime"])
+                $c[$state]['downtime']++;
+            elseif ($element["acknowledged"])
+                $c[$state]['ack']++;
+            else
+                $c[$state]['normal']++;
         }
 
         return $c;
@@ -250,7 +349,7 @@ class GlobalBackendmkbi implements GlobalBackendInterface {
      */
     public function getObjects($type, $name1Pattern = '', $name2Pattern = '') {
         if($type !== 'aggr')
-            return array();
+            throw new BackendException(l('This backend only supports "Aggregation" objects.'));
 
         $result = Array();
         foreach($this->getAggregationNames() AS $id => $name) {
@@ -275,7 +374,7 @@ class GlobalBackendmkbi implements GlobalBackendInterface {
      * the given objects and filters.
      */
     public function getAggrStateCounts($objects, $options, $filters) {
-        $aggregations = $this->getUrl('view.py?view_name=aggr_all_api&po_aggr_expand=1&po_aggr_treetype=0');
+        $aggregations = $this->getUrl('view.py?view_name=aggr_all_api&expansion_level=1');
 
         $ret = Array();
         foreach($objects AS $key => $OBJS) {
@@ -283,11 +382,18 @@ class GlobalBackendmkbi implements GlobalBackendInterface {
             if ($aggr === null)
                 continue; // did not find this aggregation
             $obj_url = $OBJS[0]->getUrl();
+
+            $is_acknowledged = isset($aggr['aggr_acknowledged']) && $aggr['aggr_acknowledged'] == "1";
+            $is_in_downtime = isset($aggr['aggr_in_downtime']) && $aggr['aggr_in_downtime'] == "1";
+
             $ret[$key] = Array(
                 'details' => Array(
                     ALIAS => $aggr['aggr_name'],
                     // This forces the aggregation state to be the summary state of the object
-                    STATE => $this->getAggrState($aggr['aggr_state_num']),
+                    STATE    => $this->getAggrState($aggr['aggr_state_num']),
+                    OUTPUT   => "xxxxxxxxxxxxxx",
+                    ACK      => $is_acknowledged == "1" ? 1 : 0,
+                    DOWNTIME => $is_in_downtime == "1" ? 1 : 0,
                 ),
                 'attrs' => Array(
                     // Forces the URL to point to the BI aggregate
@@ -309,7 +415,7 @@ class GlobalBackendmkbi implements GlobalBackendInterface {
      * the given objects and filters.
      */
     public function getServiceState($objects, $options, $filters) {
-        $aggregations = $this->getUrl('view.py?view_name=aggr_all_api&po_aggr_expand=1&po_aggr_treetype=0');
+        $aggregations = $this->getUrl('view.py?view_name=aggr_all_api&expansion_level=1');
 
         $ret = Array();
         foreach($objects AS $key => $OBJS) {
@@ -321,14 +427,11 @@ class GlobalBackendmkbi implements GlobalBackendInterface {
             // Add the single component state counts
             $elements = $this->getAggrElements($aggr);
             foreach ($elements AS $element) {
-                // 0: state short code, 1: element name
-                $s = state_num(GlobalBackendmkbi::$bi_short_states[$element[0]]);
-
                 $child = array(
-                    $s,
-                    '',  // output
-                    0,
-                    0,
+                    $this->getAggrState($element["state"]),  // state
+                    $element["output"],            // output
+                    $element["acknowledged"],      // acknowledged
+                    $element["in_downtime"],       // in downtime
                     1,  // state type
                     1, // current attempt
                     1, // max check attempts
@@ -337,8 +440,8 @@ class GlobalBackendmkbi implements GlobalBackendInterface {
                     null, // last hard state change
                     null, // last state change
                     '', // perfdata
-                    $element[1],  // display name
-                    $element[1],  // alias
+                    $element["title"],  // display name
+                    $element["title"],  // alias
                     '',  // address
                     '',  // notes
                     '', // check command
@@ -348,7 +451,7 @@ class GlobalBackendmkbi implements GlobalBackendInterface {
                     null, // dt start
                     null, // dt end
                     0, // staleness
-                    $element[1] // descr
+                    $element["title"] // descr
                 );
 
                 $ret[$key][] = $child;

@@ -29,6 +29,16 @@ $configVars = array(
     )
 );
 
+// Assign config variables to specific object types
+global $configVarMap;
+$configVarMap = array(
+    'global' => array(
+        'general' => array(
+            'filter_group'  => null,
+        ),
+    ),
+);
+
 /**
  * This filters the current map config by a given hostgroup.
  * All hosts not found in this group are removed from the map.
@@ -59,13 +69,14 @@ function process_filter($MAPCFG, $map_name, &$map_config, $params = null) {
     global $filter_processed;
     // Skip implicit calls if already processed explicit
     if($params === null && $filter_processed)
-        return;
+        return true;
     $filter_processed = true;
 
     if($params === null)
         $params = $MAPCFG->getSourceParams();
 
-    //filter_hostgroup($map_config, $params);
+    filter_hostgroup($map_config, $params);
+    return true; // allow caching
 }
 
 ?>

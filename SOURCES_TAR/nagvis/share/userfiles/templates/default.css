@@ -25,12 +25,14 @@ body, table, th, td {
     margin: 0;
     padding: 0;
 
-    font-family: Verdana, Geneva, Arial, Helvetica, sans-serif;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     text-decoration: none;
 
     color: black;
-    font-size: 12pt;
+    font-size: 9pt;
 }
+
+span {font-size: 9pt;}
 
 html,body{height:100%;}
 
@@ -42,38 +44,18 @@ img {border:0}
 .main {margin:0;padding:0;background-color:white;color:black}
 .header {position:fixed;top:0;left:0;padding:0;z-index:100;min-width:1000px;}
 .headerspacer {width:100%}
-.map, #overview, #url {position:relative;top:0;left:0;z-index:98}
+div#map, div#overview, div#url {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index:98
+}
 
 iframe#url {
     width: 100%;
     height: 100%;
-}
-
-/* Message-Box */
-.messageBox {
-    width: 600px;
-    border: 0px;
-    background-color: #CCCCCC;
-}
-
-.messageBox th {
-    height: 22px;
-
-    background-color: #CCCCCC;
-
-    font-size: 15pt;
-    font-weight: bold;
-    text-align: center;
-}
-
-.messageBox td {
-    height: 200px;
-
-    background-color: #EEEEEE;
-
-    font-size: 12pt;
-    font-weight: bold;
-    text-align: center;
 }
 
 /* Background images */
@@ -85,20 +67,23 @@ iframe#url {
 }
 
 /* icons */
-.icon {
+.icondiv {
     position : absolute;
     border : 0;
-    font-size: 12pt;
     z-index : 1;
+}
+
+.icon {
+    cursor: pointer;
+}
+
+.dragger .icon {
+    cursor: move;
 }
 
 /* lines */
 .line {
     position : absolute;
-    z-index : 1;
-    border-style : dotted;
-    border-width : 1px;
-    border-color : black;
 }
 
 .jsline div {
@@ -111,56 +96,32 @@ a.linelink {
 
 /* textbox (object on map) */
 .box {
-    position : absolute;
+    position: absolute;
     z-index : 1;
     border: 1px #000 solid;
-    font-family: Verdana, Geneva, Arial, Helvetica, sans-serif;
-    font-size: 11px;
-    padding: 2px;
-    /* tried to solve the off-screen text wrap. This fixes the problem but
-     * results no no linebreak at all: white-space:nowrap; */
-}
-
-/* labels for the objects on the maps */
-.object_label {
-    position : absolute;
-    z-index : 1;
-    border: 1px #000 solid;
-    font-family: Verdana, Geneva, Arial, Helvetica, sans-serif;
-    font-size: 11px;
-    padding: 2px;
+    padding: 0 2px;
     /* tried to solve the off-screen text wrap. This fixes the problem but
      * results no no linebreak at all: white-space:nowrap; */
 }
 
 /* control styles */
 div.control {
-  position: absolute;
-  border: 1px #C0C0C0 dotted;
-  /* scale background of controls - hope this works for the important browsers */
-  -webkit-background-size: cover;
-  -moz-background-size: cover;
-  -o-background-size: cover;
-  background-size: cover;
-}
-
-div.control.drag {
-    background-image: url('../images/templates/default.control_drag.gif');
-}
-
-div.control.delete {
-    background-image: url('../images/templates/default.control_delete.gif');
-}
-
-div.control.modify {
-    background-image: url('../images/templates/default.control_modify.gif');
+    position: absolute;
 }
 
 div.control.togglemid {
-    background-image: url('../images/templates/default.control_togglemid.gif');
+    cursor: pointer;
+}
+
+.dragger {
+    cursor: move;
 }
 
 /* new overview page */
+
+div.infopage {
+    overflow: auto;    
+}
 
 div.infopage h2 {
     margin: 20px 10px 0 10px;
@@ -188,12 +149,12 @@ div.infobox div.mapobj {
 
 div.infobox div.mapobj h3,
 div.infobox table.rotation h3 {
-    font-size: 12px;
     color: #43B3CF;
     margin-top: 2px;
     margin-bottom: 2px;
     margin-left: 2px;
     font-weight: normal;
+    font-size: 1.0em;
 }
 
 div.infobox div.mapobj img.state {
@@ -233,7 +194,6 @@ div.infopage > table td, div.infopage > table th {
     border: 1px solid #e5e5e5;
     padding: 4px;
 
-    font-size: 12px;
     color: #43B3CF;
     vertical-align: top;
 }
@@ -243,7 +203,7 @@ div.infopage > table th {
 }
 
 div.infopage > table th.head {
-    font-size: 20px;
+    font-size: 1.3em;
 }
 
 div.infopage > div.map.disabled h3  {
@@ -259,7 +219,6 @@ div.infopage a {
     width: 100%;
     height: 100%;
     color: #43b3cf;
-    font-size: 12px;
     text-decoration: none;
 }
 
@@ -283,6 +242,7 @@ div.infopage a:hover {
   right: 200px;
   z-index: 5000;
   opacity: 0.85;
+  font-size: 1.5em;
 }
 
 #statusMessage div {
@@ -295,8 +255,8 @@ div.infopage a:hover {
 
 #statusMessage div.notice {
   background: url('../../frontend/nagvis-js/images/internal/info.png') 6px 3px no-repeat;
-  background-color: #F7FDCB;
-  border: 1px solid #C2D071;
+  background-color: #fbfbfb;
+  border: 1px solid #e5e5e5;
 }
 
 #statusMessage div.error,
@@ -306,132 +266,10 @@ div.infopage a:hover {
   border: 1px solid #DC5757;
 }
 
-#statusMessage div.confirmation {
-  background: url('../../frontend/nagvis-js/images/internal/confirm.png') 6px 3px no-repeat;
-  background-color: #A6EF7B;
-  border: 1px solid #76C83F;
-}
-
 #statusMessage div.loading {
   background: url('../../frontend/nagvis-js/images/internal/loading.gif') 6px 3px no-repeat;
   background-color: #fbfbfb;
   border: 1px solid #e5e5e5;
-}
-
-/**
- *
- *  Message box
- *
- */
-
-#messageBoxDiv {
-    position: absolute;
-  left: 50%;
-  top: 50%;
-
-    margin-left: -297px;
-    margin-top: -125px;
-
-    width:594px;
-    height:250px;
-
-    /*margin:20 auto;*/
-    z-index: 1000;
-}
-
-#messageBoxDiv table.error, #messageBoxDiv table.critical, #messageBoxDiv table.down {
-    border:1px solid #F00;
-}
-
-#messageBoxDiv table.error, #messageBoxDiv table.critical, #messageBoxDiv table.down {
-    border:1px solid #F00;
-}
-
-#messageBoxDiv table.warning {
-    border:1px solid #FF0;
-}
-
-#messageBoxDiv table.unknown, #messageBoxDiv table.permission, #messageBoxDiv table.unreachable {
-    border:1px solid #FF9900;
-}
-
-#messageBoxDiv table.ok, #messageBoxDiv table.up {
-    border:1px solid #00B233;
-}
-
-#messageBoxDiv table.note {
-    border:1px solid #00F;
-}
-
-/* Style for the header area */
-
-#messageBoxDiv th {
-    font-style: italic;
-    text-align: center;
-    font-weight: bold;
-    color: black;
-    font-size: 26pt;
-}
-
-#messageBoxDiv th.error, #messageBoxDiv th.critical, #messageBoxDiv th.down {
-    background-color: #FF6666;
-}
-
-#messageBoxDiv th.warning {
-    background-color: #FFFF66;
-}
-
-#messageBoxDiv th.unknown, #messageBoxDiv th.permission, #messageBoxDiv th.unreachable {
-    background-color: #FFB200;
-}
-
-#messageBoxDiv th.ok, #messageBoxDiv th.up {
-    background-color: #99FF66;
-}
-
-#messageBoxDiv th.note {
-    background-color: #99CCFF;
-}
-
-/* Style for the message area */
-
-#messageBoxDiv td {
-    text-align: center;
-    vertical-align: middle;
-    font-size: 16pt;
-}
-
-#messageBoxDiv td.error, #messageBoxDiv td.critical, #messageBoxDiv td.down {
-    background-color: #FFB2B2;
-}
-
-#messageBoxDiv td.warning {
-    background-color: #FFFFCC;
-}
-
-#messageBoxDiv td.ok, #messageBoxDiv td.up {
-    background-color: #CCFF99;
-}
-
-#messageBoxDiv td.unknown, #messageBoxDiv td.permission, #messageBoxDiv td.unreachable {
-    background-color: #FFE566;
-}
-
-#messageBoxDiv td.note {
-    background-color: #CCE5FF;
-}
-
-#messageBoxDiv code {
-    display: block;
-    text-align: left;
-    font-size: 10px;
-    width: 560px;
-    overflow: scroll;
-}
-
-#messageBoxDiv div.details {
-    text-align: left;
-    font-size: 10px;
 }
 
 /*
@@ -439,9 +277,9 @@ div.infopage a:hover {
  */
 
 div#popupWindow {
+    position: absolute;
     z-index: 2000;
 
-    margin-left: 8px;
     font-weight: normal;
     -moz-border-radius: 11px;
     -khtml-border-radius: 11px;
@@ -468,69 +306,68 @@ div#popupWindow div.close {
     color: #555;
 }
 
-/* Popup window master table */
-table#popupWindowMaster {
-    margin: 0;
-    padding: 0;
-    border: 0;
-    border-collapse: separate;
+/* Content styling */
+#popupWindowContent {
     padding: 0 16px 16px 16px;
-}
-
-table#popupWindowMaster tr th,
-table#popupWindowMaster tr td {
-    background-color: transparent;
-    border: 0;
-
-    font-size: 10px;
     color: #43B3CF;
 }
 
-table#popupWindowMaster div.error {
-    background-color: #ff4f4f;
-    border: 1px solid #e5e5e5;
+#popupWindowContent div.error {
+    background-color: #febabb;
+    border: 1px solid #d5091b;
+    color: #d5091b;
     border-radius: 5px;
-    color: #fff;
-    margin-bottom: 2px;
+    margin: 2px 0;
     padding: 3px;
+    white-space: normal;
 }
 
-/* Content styling */
-td#popupWindowContent table.mytable {
+#popupWindowContent div.error code,
+#popupWindowContent div.error pre {
+    display: block;
+    overflow: scroll;
+    background-color: #fff;
+    color: #000;
+    margin: 2px;
+    padding: 2px;
+}
+
+#popupWindowContent div.error div.details {
+    margin-top: 5px;
+    text-align: left;
+    font-size: 0.8em;
+}
+
+#popupWindowContent table.mytable {
     width: 100%;
     padding: 0;
     margin: 0;
 }
 
-td#popupWindowContent table.mytable th,
-td#popupWindowContent table.mytable td {
-    font-size: 10px;
+#popupWindowContent table.mytable th,
+#popupWindowContent table.mytable td {
     padding: 0;
     margin: 0;
     border: 0;
+    color: #43B3CF;
 }
 
-td#popupWindowContent table.mytable td {
+#popupWindowContent table.mytable td {
     vertical-align: middle;
 }
 
-td#popupWindowContent label {
-    font-size: 13px;
-}
-
-td#popupWindowContent label span {
+#popupWindowContent label span {
     vertical-align: middle;
 }
 
-td#popupWindowContent p {
+#popupWindowContent p {
     margin-bottom: 12px;
 }
 
 /* title */
 div.infopage h2,
 div#popupWindow h1,
-td#popupWindowContent h2 {
-    font-size: 16px;
+#popupWindowContent h2 {
     text-align: left;
     padding: 3px 10px 2px 2px;
     line-height:20px;
@@ -543,6 +380,7 @@ div#popupWindow h1 {
     font-weight: normal;
     margin: 5px;
     padding: 5px 10px;
+    font-size: 1.5em;
 
     cursor: move;
     -webkit-touch-callout: none;
@@ -553,67 +391,65 @@ div#popupWindow h1 {
     user-select: none;
 }
 
-td#popupWindowContent h2 {
+#popupWindowContent h2 {
     margin: 5px 0;
 }
 
 /* cat */
-td#popupWindowContent table.mytable th.cat {font-size: 12px;}
+#popupWindowContent table.mytable th.cat {font-size: 1.2em;}
 
 /* Child rows */
-td#popupWindowContent table.mytable tr.child-row td.tdlabel {padding-left: 10px;}
+#popupWindowContent table.mytable tr.child-row td.tdlabel {padding-left: 10px;}
 
 /* td labels */
-td#popupWindowContent table.mytable td.tdlabel {width: 140px;}
-td#popupWindowContent table.mytable td.tdbox {width: 25px;}
-td#popupWindowContent table.mytable td.tdfield {
+#popupWindowContent table.mytable td.tdlabel {width: 140px;}
+#popupWindowContent table.mytable td.tdbox {width: 25px;}
+#popupWindowContent table.mytable td.tdfield {
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 167px;
-    width: 165px;
 }
-td#popupWindowContent input[type="radio"] {
+#popupWindowContent input[type="radio"] {
     vertical-align: middle;
 }
-td#popupWindowContent table.mytable tr td.tdfield input,
-td#popupWindowContent table.mytable tr td.tdfield select {
-    width: 165px;
+#popupWindowContent table.mytable tr td.tdlabel input {
+    width: 140x;
 }
-td#popupWindowContent table.mytable tr td.tdfield input {
-    padding: 0 1px;
-    width: 163px;
+#popupWindowContent table.mytable tr td.tdfield textarea,
+#popupWindowContent table.mytable tr td.tdfield select {
+    width: 99%;
 }
-td#popupWindowContent table.mytable tr td.tdfield span {
-    word-wrap: break-word;
+#popupWindowContent table.mytable tr td.tdfield textarea {
+    height: 250px;
 }
-td#popupWindowContent table.mytable tr td.tdfield div.picker input {
-    width:145px;
-    margin-right:3px;
-}
-td#popupWindowContent table.mytable tr td.tdfield div.picker img {
-    vertical-align: middle;
-}
-td#popupWindowContent table.mytable tr td.tdfield input.checkbox {
+#popupWindowContent table.mytable tr td.tdfield input[type="checkbox"] {
     width: auto;
     margin-right:2px;
 }
-td#popupWindowContent table.mytable tr td.tdfield input.err,
-td#popupWindowContent table.mytable tr td.tdfield select.err {
+#popupWindowContent table.mytable tr td.tdfield span {
+    word-wrap: break-word;
+}
+#popupWindowContent table.mytable tr td.tdfield div.picker input {
+    width:140px;
+    margin-right:3px;
+}
+#popupWindowContent table.mytable tr td.tdfield div.picker img {
+    vertical-align: middle;
+}
+#popupWindowContent table.mytable tr td.tdfield input.err,
+#popupWindowContent table.mytable tr td.tdfield select.err {
     border-color: #ff4f4f;
 }
 
-td#popupWindowContent table.mytable tr td.tdfield div.err {
+#popupWindowContent table.mytable tr td.tdfield div.err {
     margin: 0;
 }
 
-td#popupWindowContent .submit {
+#popupWindowContent .submit {
     /*font-weight: bold;
     color: #43b3cf;
     vertical-align: middle;*/
 
     padding: 3px 10px;
-    font-size: 12px;
     background-color: #fbfbfb;
     border: 1px solid #e5e5e5;
     border-width: 1px;
@@ -629,7 +465,7 @@ td#popupWindowContent .submit {
     display: block;
 }
 
-td#popupWindowContent table.mytable tr td.err div {
+#popupWindowContent table.mytable tr td.err div {
     padding: 3px;
     margin: 0 0 0 20%;
     width: 80%;
@@ -642,8 +478,8 @@ td#popupWindowContent table.mytable tr td.err div {
     border-radius: 5px;
 }
 
-td#popupWindowContent div.success,
-td#popupWindowContent div.err {
+#popupWindowContent div.success,
+#popupWindowContent div.err {
     padding: 5px 8px;
     margin: 10px;
     border: 1px solid #00ff00;
@@ -655,7 +491,7 @@ td#popupWindowContent div.err {
     border-radius: 5px;
 }
 
-td#popupWindowContent div.err {
+#popupWindowContent div.err {
     border: 1px solid #ff4f4f;
     background-color: #FFC9C9;
     color: #000;
@@ -663,11 +499,14 @@ td#popupWindowContent div.err {
 
 /* Popup window forms */
 
-td#popupWindowContent a {color:#43B3CF;text-decoration:none;}
-td#popupWindowContent a:hover {color:#779D2A;text-decoration:underline}
+#popupWindowContent table.perms td.perm {
+    text-align: center;
+}
 
-td#popupWindowContent input, select {
-    font-size: 11px;
+#popupWindowContent a {color:#43B3CF;text-decoration:none;}
+#popupWindowContent a:hover {color:#779D2A;text-decoration:underline}
+
+#popupWindowContent input, select {
     color: #555555;
     background-color: #fbfbfb;
     border: 1px solid #e5e5e5;
@@ -679,7 +518,6 @@ td#popupWindowContent input, select {
     border-bottom: 1px solid #ddd;
     box-shadow: 0 3px 6px #ddd;
     color: #43B3CF;
-    font-size: 0.6em;
     height: 31px;
     width: 100%;
 }
@@ -692,6 +530,7 @@ td#popupWindowContent input, select {
     background-image: none;
     background-color: #fbfbfb;
     border: 1px solid #dddddd;
+    border-top: none;
     border-bottom-right-radius: 4px;
 }
 
@@ -714,10 +553,54 @@ td#popupWindowContent input, select {
     float: left;
 }
 
+.header ul.head li.toggle a,
+#headershow a {
+    display: block;
+    margin-left: 2px;
+    height: 100%;
+    line-height: 32px;
+    text-decoration: none;
+    color: #43B3CF;
+}
+
+#headershow a {
+    margin-left: 0;
+}
+
+#sidetoggle {
+    position: absolute;
+    left: 50px;
+    top: 31px;
+    background-color: #fbfbfb;
+    border: 1px solid #dddddd;
+    border-top: none;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+    width: 100px;
+    height: 5px;
+    text-align: center;
+}
+
+#sidetoggle:hover {
+    cursor:pointer;
+    background-color: #ffffff;
+}
+
+#sidetoggle img {
+    width: 20px;
+    height: 3px;
+    margin-top: 1px;
+}
+
 .header ul.head li.logo {
     padding-left: 5px;
     padding-right: 5px;
     margin-top: 2px;
+}
+
+.header ul.head li.logo img {
+    height: 25px;
+    width: 97px;
 }
 
 .header ul.head li.logo a, .header ul.head li.logo a:active {
@@ -730,10 +613,10 @@ td#popupWindowContent input, select {
     text-decoration: none;
 }
 
-.header ul li span {
+.header ul li > span {
     margin:0;
     height:31px;
-    line-height:31px;
+    line-height:32px;
     font-weight:normal;
     padding: 0 8px;
 }
@@ -746,7 +629,7 @@ td#popupWindowContent input, select {
     height:31px;
     padding-left:8px;
     padding-right:8px;
-    line-height:31px;
+    line-height: 32px;
     width:auto;
     font-weight:normal;
     cursor:pointer;
@@ -801,26 +684,23 @@ td#popupWindowContent input, select {
 
 /* Styling for the sidebar */
 #sidebar {
-    position:relative;
+    position:absolute;
     top:0;
     left:0;
-    float:left;
-    min-height:100%;
+    bottom:0;
     width:200px;
     z-index:99;
     display:none;
     background-color:#fbfbfb;
     text-decoration:none;
-    font-size:0.6em;
     padding-top:10px;
     border-right:1px solid #e5e5e5;
-    padding-top:32px;
 }
 #sidebar ul {margin:0;padding:0;display:block;list-style:none}
 #sidebar li {margin:0;padding:0;line-height:25px;}
 #sidebar li.spacerbottom {border-bottom:1px dotted #e5e5e5}
 #sidebar li.spacertop {border-top:1px dotted #e5e5e5}
-#sidebar li > div {width:200px;height:25px;clear:both;}
+#sidebar li > div {width:200px;clear:both;}
 #sidebar li > div a {padding-left:20px;}
 
 #sidebar li.parent div {}
@@ -889,6 +769,19 @@ div.statediv.sPENDING, div.statediv.sUNCHECKED {
     background-color: #C0C0C0;
 }
 
+div.statediv.sACK:not(.sDOWNTIME) {
+    border-style: dotted;
+    clip-path: polygon(100% 0, 100% 100%, 50% 50%, 0 100%, 0 0);
+}
+div.statediv.sDOWNTIME:not(.sACK) {
+    border-style: dotted;
+    clip-path: polygon(100% 0, 100% 100%, 0 100%, 0 0, 50% 50%);
+}
+div.statediv.sACK.sDOWNTIME {
+    border-style: dotted;
+    clip-path: polygon(50% 50%, 100% 0, 100% 100%, 50% 50%, 0 100%, 0 0);
+}
+
 /*
  * Frontend eventlog styling
  */
@@ -898,20 +791,19 @@ div.statediv.sPENDING, div.statediv.sUNCHECKED {
 	bottom: 0px;
 	right: 20px;
 	z-index: 1000;
-	
+
 	width: 400px;
 	height: 70px;
-	
+
 	background-color: #d0d0d0;
 	border: 1px solid #000000;
 	border-bottom: 0;
-	
+
 	opacity:0.4;
 	/*filter:alpha(opacity=40);*/
-	
+
 	padding: 2px;
-	
-	font-size: 9px;
+	font-size: 0.8em;
 }
 
 #eventlogControl {
@@ -919,20 +811,20 @@ div.statediv.sPENDING, div.statediv.sUNCHECKED {
 	bottom: 75px;
 	right: 20px;
 	z-index: 1001;
-	
+
 	width: 10px;
 	height: 10px;
-	
+
 	background-color: #d0d0d0;
 	border: 1px solid #000000;
 	border-bottom: 0;
-	
+
 	opacity:0.4;
 	/*filter:alpha(opacity=40);*/
-	
+
 	padding: 2px;
-	
-	font-size: 9px;
+
+	font-size: 0.8em;
 }
 
 /**
@@ -961,7 +853,6 @@ div#zoombar a {
     vertical-align: middle;
     line-height: 20px;
     color: #43B3CF;
-    font-size: 12px;
     font-weight: bold;
     cursor: pointer;
 }
@@ -970,7 +861,7 @@ div#zoombar a.minus {
 }
 div#zoombar a:hover {
     background-color: #ffffff;
-    color: #779D2A   
+    color: #779D2A;
 }
 div#zoombar div.drag {
     position: relative;
@@ -990,22 +881,28 @@ div#zoombar div.drag div {
     border: 1px solid #e5e5e5;
 }
 
+input[type=checkbox] {
+    position: relative;
+    vertical-align: middle;
+    bottom: 1px;
+}
+
 /* edit main config dialog navigation (tabbing) */
 
-form#edit_config ul.nav {
+#popupWindowContent ul.nav {
     list-style: none;
     height: 21px;
     margin: 0;
     padding: 0;
     border-bottom: 1px solid #e5e5e5;
-}
-
-form#edit_config ul.nav li {
-    float: left;
     margin-bottom: 10px;
 }
 
-form#edit_config ul.nav li a {
+#popupWindow ul.nav li {
+    float: left;
+}
+
+#popupWindow ul.nav li a {
     display: block;
     height: 20px;
     padding: 0 5px;
@@ -1016,24 +913,456 @@ form#edit_config ul.nav li a {
     border-top-right-radius: 5px;
 }
 
-form#edit_config ul.nav li a:hover {
+#popupWindow ul.nav li a:hover {
     text-decoration: none;
     color:#779D2A;
     background-color: #fbfbfb;
 }
 
-form#edit_config ul.nav li.active a {
+#popupWindow ul.nav li.active a {
     border-bottom: 1px solid #fff;
     color: #000;
 }
 
 /* search dialog */
 
-td#popupWindowContent div#search input#highlightInput {
+td#popupWindow div.simple_form input#highlightInput {
     width: 200px;
 }
 
-td#popupWindowContent div#search .submit {
+td#popupWindow div.simple_form .submit {
     display: inline-block;
     margin: 2px 10px;
+}
+
+/* ack dialog */
+
+td#popupWindow form#acknowledge input#comment {
+    width: 246px;
+    margin-left: 5px;
+}
+
+body.add, body.add .leaflet-container {
+    cursor: crosshair;
+}
+
+/* edit grid */
+div#grid div {
+    position: absolute;
+    z-index: 9;
+}
+
+div#grid div.vertical {
+    position: absolute;
+    width: 1px;
+}
+
+div#grid div.horizontal {
+    position: absolute;
+    height: 1px;
+}
+
+/* worldmap specific */
+
+/* required styles */
+
+.leaflet-map-pane,
+.leaflet-tile,
+.leaflet-marker-icon,
+.leaflet-marker-shadow,
+.leaflet-tile-pane,
+.leaflet-tile-container,
+.leaflet-overlay-pane,
+.leaflet-shadow-pane,
+.leaflet-marker-pane,
+.leaflet-popup-pane,
+.leaflet-overlay-pane svg,
+.leaflet-zoom-box,
+.leaflet-image-layer,
+.leaflet-layer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    }
+.leaflet-container {
+    overflow: hidden;
+    -ms-touch-action: none;
+    }
+.leaflet-tile,
+.leaflet-marker-icon,
+.leaflet-marker-shadow {
+    -webkit-user-select: none;
+       -moz-user-select: none;
+            user-select: none;
+    -webkit-user-drag: none;
+    }
+.leaflet-marker-icon,
+.leaflet-marker-shadow {
+    display: block;
+    }
+/* map is broken in FF if you have max-width: 100% on tiles */
+.leaflet-container img {
+    max-width: none !important;
+    }
+/* stupid Android 2 doesn't understand "max-width: none" properly */
+.leaflet-container img.leaflet-image-layer {
+    max-width: 15000px !important;
+    }
+.leaflet-tile {
+    filter: inherit;
+    visibility: hidden;
+    }
+.leaflet-tile-loaded {
+    visibility: inherit;
+    }
+.leaflet-zoom-box {
+    width: 0;
+    height: 0;
+    }
+/* workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=888319 */
+.leaflet-overlay-pane svg {
+    -moz-user-select: none;
+    }
+
+.leaflet-tile-pane    { z-index: 2; }
+.leaflet-objects-pane { z-index: 3; }
+.leaflet-overlay-pane { z-index: 4; }
+.leaflet-shadow-pane  { z-index: 5; }
+.leaflet-marker-pane  { z-index: 6; }
+.leaflet-popup-pane   { z-index: 7; }
+
+.leaflet-vml-shape {
+    width: 1px;
+    height: 1px;
+    }
+.lvml {
+    behavior: url(#default#VML);
+    display: inline-block;
+    position: absolute;
+    }
+
+
+/* control positioning */
+
+.leaflet-control {
+    position: relative;
+    z-index: 7;
+    pointer-events: auto;
+    }
+.leaflet-top,
+.leaflet-bottom {
+    position: absolute;
+    z-index: 1000;
+    pointer-events: none;
+    }
+.leaflet-top {
+    top: 0;
+    }
+.leaflet-right {
+    right: 0;
+    }
+.leaflet-bottom {
+    bottom: 0;
+    }
+.leaflet-left {
+    left: 0;
+    }
+.leaflet-control {
+    float: left;
+    clear: both;
+    }
+.leaflet-right .leaflet-control {
+    float: right;
+    }
+.leaflet-top .leaflet-control {
+    margin-top: 10px;
+    }
+.leaflet-bottom .leaflet-control {
+    margin-bottom: 10px;
+    }
+.leaflet-left .leaflet-control {
+    margin-left: 10px;
+    }
+.leaflet-right .leaflet-control {
+    margin-right: 10px;
+    }
+
+
+/* zoom and fade animations */
+
+.leaflet-fade-anim .leaflet-tile,
+.leaflet-fade-anim .leaflet-popup {
+    opacity: 0;
+    -webkit-transition: opacity 0.2s linear;
+       -moz-transition: opacity 0.2s linear;
+         -o-transition: opacity 0.2s linear;
+            transition: opacity 0.2s linear;
+    }
+.leaflet-fade-anim .leaflet-tile-loaded,
+.leaflet-fade-anim .leaflet-map-pane .leaflet-popup {
+    opacity: 1;
+    }
+
+.leaflet-zoom-anim .leaflet-zoom-animated {
+    -webkit-transition: -webkit-transform 0.25s cubic-bezier(0,0,0.25,1);
+       -moz-transition:    -moz-transform 0.25s cubic-bezier(0,0,0.25,1);
+         -o-transition:      -o-transform 0.25s cubic-bezier(0,0,0.25,1);
+            transition:         transform 0.25s cubic-bezier(0,0,0.25,1);
+    }
+.leaflet-zoom-anim .leaflet-tile,
+.leaflet-pan-anim .leaflet-tile,
+.leaflet-touching .leaflet-zoom-animated {
+    -webkit-transition: none;
+       -moz-transition: none;
+         -o-transition: none;
+            transition: none;
+    }
+
+.leaflet-zoom-anim .leaflet-zoom-hide {
+    visibility: hidden;
+    }
+
+
+/* cursors */
+
+.leaflet-clickable {
+    cursor: pointer;
+    }
+.leaflet-container {
+    cursor: -webkit-grab;
+    cursor:    -moz-grab;
+    }
+.leaflet-popup-pane,
+.leaflet-control {
+    cursor: auto;
+    }
+.leaflet-dragging .leaflet-container,
+.leaflet-dragging .leaflet-clickable {
+    cursor: move;
+    cursor: -webkit-grabbing;
+    cursor:    -moz-grabbing;
+    }
+
+
+/* visual tweaks */
+
+.leaflet-container {
+    background: #ddd;
+    outline: 0;
+    }
+.leaflet-container a {
+    color: #0078A8;
+    }
+.leaflet-zoom-box {
+    border: 2px dotted #38f;
+    background: rgba(255,255,255,0.5);
+    }
+
+
+/* general typography */
+.leaflet-container {
+    font: 12px/1.5 "Helvetica Neue", Arial, Helvetica, sans-serif;
+    }
+
+
+/* general toolbar styles */
+
+.leaflet-bar {
+    box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+    border-radius: 4px;
+    }
+.leaflet-bar a,
+.leaflet-bar a:hover {
+    background-color: #fff;
+    border-bottom: 1px solid #ccc;
+    width: 26px;
+    height: 26px;
+    line-height: 26px;
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    color: black;
+    }
+.leaflet-bar a,
+.leaflet-control-layers-toggle {
+    background-position: 50% 50%;
+    background-repeat: no-repeat;
+    display: block;
+    }
+.leaflet-bar a:hover {
+    background-color: #f4f4f4;
+    }
+.leaflet-bar a:first-child {
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    }
+.leaflet-bar a:last-child {
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+    border-bottom: none;
+    }
+.leaflet-bar a.leaflet-disabled {
+    cursor: default;
+    background-color: #f4f4f4;
+    color: #bbb;
+    }
+
+.leaflet-touch .leaflet-bar a {
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    }
+
+
+/* zoom control */
+
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+    font: bold 18px 'Lucida Console', Monaco, monospace;
+    text-indent: 1px;
+    }
+.leaflet-control-zoom-out {
+    font-size: 20px;
+    }
+
+.leaflet-touch .leaflet-control-zoom-in {
+    font-size: 22px;
+    }
+.leaflet-touch .leaflet-control-zoom-out {
+    font-size: 24px;
+    }
+
+
+/* layers control */
+
+.leaflet-control-layers {
+    box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+    background: #fff;
+    border-radius: 5px;
+    }
+.leaflet-control-layers-toggle {
+    background-image: url(../../frontend/nagvis-js/images/internal/leaflet/layers.png);
+    width: 36px;
+    height: 36px;
+    }
+.leaflet-retina .leaflet-control-layers-toggle {
+    background-image: url(../../frontend/nagvis-js/images/internal/leaflet/layers-2x.png);
+    background-size: 26px 26px;
+    }
+.leaflet-touch .leaflet-control-layers-toggle {
+    width: 44px;
+    height: 44px;
+    }
+.leaflet-control-layers .leaflet-control-layers-list,
+.leaflet-control-layers-expanded .leaflet-control-layers-toggle {
+    display: none;
+    }
+.leaflet-control-layers-expanded .leaflet-control-layers-list {
+    display: block;
+    position: relative;
+    }
+.leaflet-control-layers-expanded {
+    padding: 6px 10px 6px 6px;
+    color: #333;
+    background: #fff;
+    }
+.leaflet-control-layers-selector {
+    margin-top: 2px;
+    position: relative;
+    top: 1px;
+    }
+.leaflet-control-layers label {
+    display: block;
+    }
+.leaflet-control-layers-separator {
+    height: 0;
+    border-top: 1px solid #ddd;
+    margin: 5px -10px 5px -6px;
+    }
+
+
+/* attribution and scale controls */
+
+.leaflet-container .leaflet-control-attribution {
+    background: #fff;
+    background: rgba(255, 255, 255, 0.7);
+    margin: 0;
+    }
+.leaflet-control-attribution,
+.leaflet-control-scale-line {
+    padding: 0 5px;
+    color: #333;
+    }
+.leaflet-control-attribution a {
+    text-decoration: none;
+    }
+.leaflet-control-attribution a:hover {
+    text-decoration: underline;
+    }
+.leaflet-container .leaflet-control-attribution,
+.leaflet-container .leaflet-control-scale {
+    font-size: 11px;
+    }
+.leaflet-left .leaflet-control-scale {
+    margin-left: 5px;
+    }
+.leaflet-bottom .leaflet-control-scale {
+    margin-bottom: 5px;
+    }
+.leaflet-control-scale-line {
+    border: 2px solid #777;
+    border-top: none;
+    line-height: 1.1;
+    padding: 2px 5px 1px;
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    -moz-box-sizing: content-box;
+         box-sizing: content-box;
+
+    background: #fff;
+    background: rgba(255, 255, 255, 0.5);
+    }
+.leaflet-control-scale-line:not(:first-child) {
+    border-top: 2px solid #777;
+    border-bottom: none;
+    margin-top: -2px;
+    }
+.leaflet-control-scale-line:not(:first-child):not(:last-child) {
+    border-bottom: 2px solid #777;
+    }
+
+.leaflet-touch .leaflet-control-attribution,
+.leaflet-touch .leaflet-control-layers,
+.leaflet-touch .leaflet-bar {
+    box-shadow: none;
+    }
+.leaflet-touch .leaflet-control-layers,
+.leaflet-touch .leaflet-bar {
+    border: 2px solid rgba(0,0,0,0.2);
+    background-clip: padding-box;
+    }
+
+
+.leaflet-oldie .leaflet-control-zoom,
+.leaflet-oldie .leaflet-control-layers {
+    border: 1px solid #999;
+    }
+
+
+/* div icon */
+
+.leaflet-div-icon {
+    background: #fff;
+    border: 1px solid #666;
+    }
+
+/* disable focus effect (border), needed for worldmap, but ok for whole nagvis */
+input:focus,
+select:focus,
+textarea:focus,
+button:focus,
+a:focus,
+div:focus {
+    outline: none;
 }

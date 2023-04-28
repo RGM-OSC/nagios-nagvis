@@ -3,7 +3,7 @@
  *
  * NagVisMap.php - Class for parsing the NagVis maps
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -23,7 +23,7 @@
  *****************************************************************************/
 
 /**
- * @author	Lars Michelsen <lars@vertical-visions.de>
+ * @author	Lars Michelsen <lm@larsmichelsen.com>
  */
 class NagVisMap {
     public $MAPOBJ = null;
@@ -36,7 +36,7 @@ class NagVisMap {
      *
      * @param 	GlobalMainCfg 	$MAINCFG
      * @param 	GlobalMapCfg 	$MAPCFG
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function __construct($MAPCFG, $getState = GET_STATE, $bIsView = IS_VIEW) {
         global $_BACKEND;
@@ -44,6 +44,10 @@ class NagVisMap {
 
         if($getState === GET_STATE) {
             $this->MAPOBJ = new NagVisMapObj($MAPCFG, $bIsView);
+            // FIXME: needed? $this->MAPOBJ->setConfiguration($this->MAPCFG->getTypeDefaults('global'));
+            $objConf = $MAPCFG->getMapObject(0);
+            unset($objConf['type']);
+            $this->MAPOBJ->setConfiguration($objConf);
             log_mem('postmapinit');
             $this->MAPOBJ->fetchMapObjects();
             log_mem('map ' .$this->MAPCFG->getName(). ' '.count($this->MAPOBJ->getMembers()));
@@ -65,11 +69,12 @@ class NagVisMap {
      * Parses the objects of the map. Can be called in different modes
      *   complete: first object is the summary of the map and all map objects
      *   summary:  only the summary state of the map
-     *   state:    the state of all map objects
+     *   full:     all object infos of all map objects (might be filtered)
+     *   state:    the state of all map objects (might be filtered)
      *
      * @param   String  The type of request. Can be complete|summary|state
      * @return	String  Json Code
-     * @author 	Lars Michelsen <lars@vertical-visions.de>
+     * @author 	Lars Michelsen <lm@larsmichelsen.com>
      */
     public function parseObjectsJson($type = 'complete') {
         $arrRet = Array();
@@ -102,7 +107,7 @@ class NagVisMap {
                     }
                 break;
                 default: // Shape, Line, Textbox and others...
-                    if($type == 'complete')
+                    if ($type == 'complete' || $type == 'full')
                         $arrRet[] = $OBJ->parseJson();
                 break;
             }

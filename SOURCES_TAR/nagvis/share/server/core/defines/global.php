@@ -3,7 +3,7 @@
  *
  * global.php - File for global constants and some other standards
  *
- * Copyright (c) 2004-2015 NagVis Project (Contact: info@nagvis.org)
+ * Copyright (c) 2004-2016 NagVis Project (Contact: info@nagvis.org)
  *
  * License:
  *
@@ -22,12 +22,8 @@
  *
  *****************************************************************************/
  
-/**
- * @author	Lars Michelsen <lars@vertical-visions.de>
- */
-
 // NagVis Version
-define('CONST_VERSION', '1.8.5');
+define('CONST_VERSION', '1.9.34');
 
 // Set PHP error handling to standard level
 // Different levels for php versions below 5.1 because PHP 5.1 reports
@@ -45,7 +41,7 @@ set_include_path(
 	get_include_path()
 	.PATH_SEPARATOR.'../../server/core/classes'
 	.PATH_SEPARATOR.'../../server/core/classes/objects'
-	.PATH_SEPARATOR.'../../server/core/ext/php-gettext-1.0.9'
+	.PATH_SEPARATOR.'../../server/core/ext/php-gettext-1.0.12'
 );
 
 // Enable/Disable profiling of NagVis using xhprof.  To make use of this the
