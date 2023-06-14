@@ -14,7 +14,7 @@ function automap_check_graphviz($binary) {
     $bFound = false;
     foreach(Array(cfg('automap','graphvizpath').$binary, $binary) AS $path) {
         // Check if dot can be found in path (If it is there $returnCode is 0, if not it is 1)
-        exec('which '.$path.' 2>/dev/null', $arrReturn, $exitCode);
+        exec('/usr/bin/which '.$path.' 2>/dev/null', $arrReturn, $exitCode);
 
         if($exitCode == 0) {
             $automap_graphviz_path = str_replace($binary, '', $arrReturn[0]);
@@ -58,7 +58,7 @@ function graphviz_config_tree(&$params, &$tree, $layer = 0) {
     $str .= 'label="'.$name.'", ';
     $str .= 'URL="'.$tree['object_id'].'", ';
     $str .= 'tooltip="'.$tree['object_id'].'", ';
-    
+
     $width  = $tree['.width'];
     $height = $tree['.height'];
 
@@ -262,7 +262,7 @@ function graphviz_parse(&$map_config, $imagemap) {
      * It might happen that there are html entities used in the url
      * <area shape="rect" href="/check_mk/view.py?view_name=host&amp;site=&amp;host=localhost" target="_self" title="host_0" alt="" coords="4,4,20,20"/>
      * <area shape="rect" id="node1" href="/nv16/check_mk/view.py?view_name=host&amp;site=&amp;host=omd-nv16" title="host_013612" alt="" coords="5,5,27,27"/>
-     *         
+     *
      * And there might also be a space after the coords parameter
      * <area shape="rect" href="/test1/check_mk/view.py?view_name=host&amp;site=&amp;host=test" target="_self" title="host_a94a8f" alt="" coords="5,5,21,21" />
      *
