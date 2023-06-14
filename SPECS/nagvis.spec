@@ -1,6 +1,6 @@
 Name: nagvis
 Version: 1.9.34
-Release: 0.rgm
+Release: 1.rgm
 Summary: Nagios advanced map editor
 
 Group: Applications/System
@@ -82,6 +82,9 @@ fi
 
 
 %changelog
+* Wed Jun 14 2023 Vincent Fricou <vfricou@fr.scc.com> - 1.9.34-1.rgm
+- Fix shell binary absolute path
+
 * Fri Apr 28 2023 Eric Belhomme <ebelhomme@fr.scc.com> - 1.9.34-0.rgm
 - upgrade to upstream nagvis 1.9.34
 - php 8.1 support
